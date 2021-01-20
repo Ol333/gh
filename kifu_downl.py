@@ -7,25 +7,41 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from tkinter import Tk
 import time
+import rab_with_db as rwd
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
 driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
-driver.get("https://system.81dojo.com/en/kifus/0999999#document")
-
 driver.wait = WebDriverWait(driver, 10)
 
-element = driver.wait.until(EC.presence_of_element_located((By.ID, "viewer_frame")))
-element.get_property('height')
-act = webdriver.common.action_chains.ActionChains(driver)
-act.move_to_element(element)
-act.move_by_offset(144,-213)
-# act.move_by_offset(30,71) #download
-act.move_by_offset(30,53) #copy
-act.click()
-act.pause(5)
-act.perform()
+#12596
+for i in range(12600,5565999):
+    driver.get("https://system.81dojo.com/en/kifus/"+"%07d" % (i))
 
-out = Tk().clipboard_get()
-print(out)
+    element = driver.wait.until(EC.presence_of_element_located((By.ID, "viewer_frame")))
+    element.get_property('height')
+    act = webdriver.common.action_chains.ActionChains(driver)
+    act.move_to_element(element)
+    act.move_by_offset(144,-213)
+    # act.move_by_offset(30,71) #download
+    act.move_by_offset(30,53) #copy
+    act.click()
+    act.pause(5)
+    act.perform()
+
+    out = Tk().clipboard_get()
+
+    kifu_id = rwd.kifu_add(out)
+    counter = 0
+    out = out.split('\n')
+    for line in out:
+        if counter == 5:
+            player_id = rwd.player_check_add(line[3:])
+            rwd.participation_add(player_id,kifu_id)
+        if counter == 6:
+            player_id = rwd.player_check_add(line[3:])
+            rwd.participation_add(player_id,kifu_id)
+            break
+        counter += 1
+

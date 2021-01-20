@@ -12,13 +12,15 @@ import rab_with_db as rwd
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
-driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
-driver.wait = WebDriverWait(driver, 10)
+
 
 #12596
-for i in range(12600,5565999):
+#12609,12624, 12630, 12631, 16634, 16635, 12636 .. 12700 -
+for i in range(12976,5565999):
+    # добавить try catch
+    driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
+    driver.wait = WebDriverWait(driver, 10)
     driver.get("https://system.81dojo.com/en/kifus/"+"%07d" % (i))
-
     element = driver.wait.until(EC.presence_of_element_located((By.ID, "viewer_frame")))
     element.get_property('height')
     act = webdriver.common.action_chains.ActionChains(driver)
@@ -44,4 +46,5 @@ for i in range(12600,5565999):
             rwd.participation_add(player_id,kifu_id)
             break
         counter += 1
+    driver.close()
 

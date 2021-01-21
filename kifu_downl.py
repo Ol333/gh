@@ -15,36 +15,38 @@ chrome_options.add_argument("--headless")
 
 
 #12596
-#12609,12624, 12630, 12631, 16634, 16635, 12636 .. 12700 -
-for i in range(12976,5565999):
-    # добавить try catch
-    driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
-    driver.wait = WebDriverWait(driver, 10)
-    driver.get("https://system.81dojo.com/en/kifus/"+"%07d" % (i))
-    element = driver.wait.until(EC.presence_of_element_located((By.ID, "viewer_frame")))
-    element.get_property('height')
-    act = webdriver.common.action_chains.ActionChains(driver)
-    act.move_to_element(element)
-    act.move_by_offset(144,-213)
-    # act.move_by_offset(30,71) #download
-    act.move_by_offset(30,53) #copy
-    act.click()
-    act.pause(5)
-    act.perform()
+for i in range(12982,5565999):
+    try:
+        driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
+        driver.wait = WebDriverWait(driver, 10)
+        driver.get("https://system.81dojo.com/en/kifus/"+"%07d" % (i))
+        element = driver.wait.until(EC.presence_of_element_located((By.ID, "viewer_frame")))
+        element.get_property('height')
+        act = webdriver.common.action_chains.ActionChains(driver)
+        act.move_to_element(element)
+        act.move_by_offset(144,-213)
+        # act.move_by_offset(30,71) #download
+        act.move_by_offset(30,53) #copy
+        act.click()
+        act.pause(5)
+        act.perform()
 
-    out = Tk().clipboard_get()
+        out = Tk().clipboard_get()
 
-    kifu_id = rwd.kifu_add(out)
-    counter = 0
-    out = out.split('\n')
-    for line in out:
-        if counter == 5:
-            player_id = rwd.player_check_add(line[3:])
-            rwd.participation_add(player_id,kifu_id)
-        if counter == 6:
-            player_id = rwd.player_check_add(line[3:])
-            rwd.participation_add(player_id,kifu_id)
-            break
-        counter += 1
-    driver.close()
+        kifu_id = rwd.kifu_add(out)
+        counter = 0
+        out = out.split('\n')
+        for line in out:
+            if counter == 5:
+                player_id = rwd.player_check_add(line[3:])
+                rwd.participation_add(player_id,kifu_id)
+            if counter == 6:
+                player_id = rwd.player_check_add(line[3:])
+                rwd.participation_add(player_id,kifu_id)
+                break
+            counter += 1
+    except TimeoutException:
+        print(i)
+    finally:
+        driver.close()
 

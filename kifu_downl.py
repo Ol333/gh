@@ -15,10 +15,10 @@ chrome_options.add_argument("--headless")
 
 
 #12596
-for i in range(12982,5565999):
+for i in range(14419,5565999):
     try:
         driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
-        driver.wait = WebDriverWait(driver, 10)
+        driver.wait = WebDriverWait(driver, 7)
         driver.get("https://system.81dojo.com/en/kifus/"+"%07d" % (i))
         element = driver.wait.until(EC.presence_of_element_located((By.ID, "viewer_frame")))
         element.get_property('height')

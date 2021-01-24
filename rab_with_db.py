@@ -62,6 +62,18 @@ def player_loginbyid(id):
     a = a[0]
     return a
 
+def players_kifu_list(id):
+    mas = []
+    res = []
+    cur.execute(f"SELECT id_Kifu FROM Participation WHERE id_Player={id}")
+    for a in cur.fetchall():
+        mas.append(a[0])
+    for a in mas:
+        cur.execute(f"SELECT kifu FROM Kifu WHERE id={a}")
+        for aa in cur.fetchall():
+            res.append(aa[0])
+    return res
+
 # ##вывод всех таблиц
 # def print_tabl():
 #   cur.execute("SELECT name FROM sqlite_master WHERE type='table';")

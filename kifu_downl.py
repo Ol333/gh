@@ -15,7 +15,7 @@ chrome_options.add_argument("--headless")
 
 
 #12596
-for i in range(14419,5565999):
+for i in range(18155,5565999):
     try:
         driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
         driver.wait = WebDriverWait(driver, 7)

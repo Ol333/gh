@@ -1,4 +1,5 @@
 import rab_with_db as rwd
+import shogi.KIF
 
 l = rwd.player_list()
 # print(l)
@@ -6,7 +7,11 @@ l = rwd.player_list()
 l = rwd.players_kifu_list(66)
 print(len(l))
 for i in l:
-    ind = i.index("手数----指手---------消費時間--")
-    print(i[:ind])
-    print(i[ind:ind+59])
-#Dolphin - Kristallweizen-kai
+    kif = shogi.KIF.Parser.parse_str(i)[0]
+    print(kif['names'][shogi.BLACK])
+    print(kif['names'][shogi.WHITE])
+    print(kif['moves']) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    print(kif['win'])
+
+    break
+

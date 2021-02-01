@@ -12,10 +12,10 @@ import rab_with_db as rwd
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
-
+temp_pll = set(rwd.player_list())
 
 #12596
-for i in range(24304,5565999):
+for i in range(24680,5565999):
     try:
         driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
         driver.wait = WebDriverWait(driver, 6)
@@ -28,7 +28,7 @@ for i in range(24304,5565999):
         # act.move_by_offset(30,71) #download
         act.move_by_offset(30,53) #copy
         act.click()
-        act.pause(5)
+        act.pause(2)
         act.perform()
 
         out = Tk().clipboard_get()
@@ -37,12 +37,16 @@ for i in range(24304,5565999):
         counter = 0
         out = out.split('\n')
         for line in out:
-            if counter == 5:
-                player_id = rwd.player_check_add(line[3:])
+            if counter == 5 or counter == 6:
+                player_login = line[3:]
+                # проверка в temp_pll
+                if player_login in temp_pll:
+                    player_id = rwd.player_idbylogin(player_login)
+                else:
+                    player_id = rwd.player_add(player_login)
+                    temp_pll.append(player_login)
                 rwd.participation_add(player_id,kifu_id)
             if counter == 6:
-                player_id = rwd.player_check_add(line[3:])
-                rwd.participation_add(player_id,kifu_id)
                 break
             counter += 1
     except TimeoutException:

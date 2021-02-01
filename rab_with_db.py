@@ -19,6 +19,12 @@ def player_check_add(login):
     con.commit()
     return cur.lastrowid
 
+def player_add(login):
+    cur.execute("""INSERT into Player values
+                    (null,?)""",(login,))
+    con.commit()
+    return cur.lastrowid
+
 def player_del(login):
     cur.execute(f"DELETE FROM Player WHERE login='{login}'")
     con.commit()
@@ -45,9 +51,9 @@ def participation_del(id):
 
 def player_list():
     mas = []
-    cur.execute("SELECT * FROM Player")
+    cur.execute("SELECT login FROM Player")
     for a in cur.fetchall():
-        mas.append(a)
+        mas.append(a[0])
     return mas
 
 def player_idbylogin(login):

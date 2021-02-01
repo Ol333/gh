@@ -15,7 +15,7 @@ chrome_options.add_argument("--headless")
 temp_pll = set(rwd.player_list())
 
 #12596
-for i in range(24680,5565999):
+for i in range(24785,5565999):
     try:
         driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
         driver.wait = WebDriverWait(driver, 6)
@@ -44,7 +44,7 @@ for i in range(24680,5565999):
                     player_id = rwd.player_idbylogin(player_login)
                 else:
                     player_id = rwd.player_add(player_login)
-                    temp_pll.append(player_login)
+                    temp_pll.add(player_login)
                 rwd.participation_add(player_id,kifu_id)
             if counter == 6:
                 break

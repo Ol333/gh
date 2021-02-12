@@ -45,12 +45,40 @@ while line_usi := process.stdout.readline().decode('utf8'):
 process.stdin.write('usinewgame\r\n'.encode())
 process.stdin.flush()
 print('usinewgame end')
-
+start_pos = ""
 # Set up the position described in sfenstring on the internal board and play the moves on the internal board.
 for i in range(len(kif['moves'])):
-    temp_str = 'position startpos moves ' + ' '.join(kif['moves'][:i+1]) + '\r\n'
+    # найти cp за текущий ход
+    temp_str = 'position startpos moves ' + start_pos + ' ' + kif['moves'][i] + '\r\n'
+    print(temp_str[:-2], " реальный ход........ ", end="")
+    process.stdin.write((temp_str).encode())
+    process.stdin.flush()
+    process.stdin.write(("go infinite searchmoves " + kif['moves'][i] + '\r\n').encode()) #      :(
+    process.stdin.flush()
+    time.sleep(10)
+    process.stdin.write('stop\r\n'.encode())
+    process.stdin.flush()
+    out_max_res = -111111111
+    while line_end := process.stdout.readline().decode('utf8'):
+        if line_end.find('bestmove') > -1:
+            print('/// ',out_max_res)
+            break
+        else:
+            temp = line_end.split(' ')
+            if temp[1] == 'time':
+                # либо считать среднее, либо выбирать НаИбОлЬшЕе (_найти движок, который нормально работает)
+                if 'depth' in temp:
+                    if out_max_res < int(temp[9]):
+                        out_max_res = int(temp[9])
+                else:
+                    if out_max_res < int(temp[7]):
+                        out_max_res = int(temp[7])
+
+    # найти cp за лучший следующий ход
+    start_pos += ' ' + kif['moves'][i]
+    temp_str = 'position startpos moves ' + start_pos + '\r\n'
     print(temp_str[:-2], " ход........ ", end="")
-    process.stdin.write(('position startpos moves ' + ' '.join(kif['moves'][:i+1]) + '\r\n').encode())
+    process.stdin.write((temp_str).encode())
     process.stdin.flush()
     process.stdin.write('go infinite\r\n'.encode())
     process.stdin.flush()

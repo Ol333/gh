@@ -25,10 +25,9 @@ print(conditions)
 
 ################################################################################################
 
-# cmd = 'C:/Users/Olga/Downloads/Shogidokoro_with_engine/Kristallweizen/Kristallweizen-wcsc29-avx2'
-# cmd = "C:/Users/Olga/Downloads/LesserkaiSrc/LesserkaiSrc/x64/Debug/Lesserkai"
+# Shogidokoro_with_engine/Kristallweizen/Kristallweizen-wcsc29-avx2'
+# Lesserkai"
 cmd = "gikou"
-# cmd = "C:/Users/Olga/Downloads/gikou2_win/gikou"
 
 process = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -36,7 +35,6 @@ process = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, stdout=subpr
 process.stdin.write('usi\r\n'.encode())
 process.stdin.flush()
 while line_usi := process.stdout.readline().decode('utf8'):
-    print(line_usi)
     if line_usi == 'usiok\r\n':
         print(line_usi, end='')
         break
@@ -56,7 +54,7 @@ while line_usi := process.stdout.readline().decode('utf8'):
 # This is sent to the engine when the next search (started with position and go) will be from a different game.
 process.stdin.write('usinewgame\r\n'.encode())
 process.stdin.flush()
-print('usinewgame end')
+
 start_pos = ""
 # Set up the position described in sfenstring on the internal board and play the moves on the internal board.
 for i in range(len(kif['moves'])):
@@ -77,21 +75,11 @@ for i in range(len(kif['moves'])):
             break
         else:
             temp = line_end1.split(' ')
-            print(temp)
-            ## зависит от движка
-            if len(temp) > 19:
-                print(temp[14],temp[15])
-                if out_max_res < int(temp[15]):
-                    out_max_res = int(temp[15])
-            # if temp[1] == 'time':
-            #     # либо считать среднее, либо выбирать НаИбОлЬшЕе
-            #     if 'depth' in temp:
-            #         if out_max_res < int(temp[9]):
-            #             out_max_res = int(temp[9])
-            #     else:
-            #         if out_max_res < int(temp[7]):
-            #             out_max_res = int(temp[7])
-
+            # print(temp)
+            # # либо считать среднее, либо выбирать НаИбОлЬшЕе
+            temp_max = int(temp[temp.index('cp') + 1])
+            if out_max_res < temp_max:
+                out_max_res = temp_max
     # найти cp за лучший следующий ход
     start_pos += ' ' + kif['moves'][i]
     temp_str = 'position startpos moves ' + start_pos + '\r\n'
@@ -111,15 +99,11 @@ for i in range(len(kif['moves'])):
             print('///',out_variants[line_end2.split(' ')[1].replace('\r\n','')])
             break
         else:
+            # # либо считать среднее, либо выбирать НаИбОлЬшЕе
             temp = line_end2.split(' ')
-            ## зависит от движка
-            if len(temp) > 19:
-                print(temp[14],temp[15],temp[18],temp[19])
-                out_variants[temp[19].replace('\r\n','')] = temp[15]
-            # if temp[1] == 'time':
-            #     # либо считать среднее, либо выбирать наибольшее
-            #     if 'depth' in temp:
-            #         out_variants[temp[11].replace('\r\n','')] = temp[9]
-            #     else:
-            #         out_variants[temp[11].replace('\r\n','')] = temp[7]
+            temp_cp = temp[temp.index('cp') + 1]
+            temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
+            if (temp_pv in out_variants and out_variants[temp_pv] > temp_cp) or (not temp_pv in out_variants):
+                out_variants[temp_pv] = temp_cp
+    print(out_variants)
 process.kill()

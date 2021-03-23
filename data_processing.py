@@ -28,6 +28,7 @@ print(conditions)
 # Shogidokoro_with_engine/Kristallweizen/Kristallweizen-wcsc29-avx2'
 # Lesserkai"
 cmd = "gikou"
+f = open('output_{}.txt'.format(str(float('{:.3f}'.format(time.time())))), 'w')
 
 process = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -55,12 +56,14 @@ while line_usi := process.stdout.readline().decode('utf8'):
 process.stdin.write('usinewgame\r\n'.encode())
 process.stdin.flush()
 
+start_time = time.time()
 start_pos = ""
 # Set up the position described in sfenstring on the internal board and play the moves on the internal board.
 for i in range(len(kif['moves'])):
     # найти cp за текущий ход
     temp_str = 'position startpos moves ' + start_pos + '\r\n'
-    print(temp_str[:-2], " поиск cp за реальный ход........ ", end="")
+    print(start_pos.count(' '))
+    f.write(str(start_pos.count(' ')) + ") поиск cp за реальный ход........ " + str(kif['moves'][i]))
     process.stdin.write((temp_str).encode())
     process.stdin.flush()
     process.stdin.write(("go infinite searchmoves " + kif['moves'][i] + '\r\n').encode())
@@ -71,20 +74,24 @@ for i in range(len(kif['moves'])):
     out_max_res = -111111111
     while line_end1 := process.stdout.readline().decode('utf8'):
         if line_end1.find('bestmove') > -1:
-            print('/// ',out_max_res)
+            f.write(' /// ' + str(out_max_res) + '\n')
             break
         else:
             temp = line_end1.split(' ')
-            # print(temp)
+            if i == 1:
+                f.write(line_end1)
             # # либо считать среднее, либо выбирать НаИбОлЬшЕе
-            temp_max = int(temp[temp.index('cp') + 1])
-            if out_max_res < temp_max:
-                out_max_res = temp_max
+            if 'cp' in temp:
+                temp_max = int(temp[temp.index('cp') + 1])
+                if out_max_res < temp_max:
+                    out_max_res = temp_max
+            else:
+                f.write(line_end1)
     # найти cp за лучший следующий ход
     start_pos += ' ' + kif['moves'][i]
     temp_str = 'position startpos moves ' + start_pos + '\r\n'
-    # print(temp_str[:-2], " лучший следующий ход........ ", end="")
-    print(temp_str[:-2], " лучший следующий ход........ ")
+    print(start_pos.count(' '))
+    f.write(str(start_pos.count(' ')) + ') ' + str(start_pos[-4:]) + " лучший следующий ход........")
     process.stdin.write((temp_str).encode())
     process.stdin.flush()
     process.stdin.write('go infinite\r\n'.encode())
@@ -95,15 +102,26 @@ for i in range(len(kif['moves'])):
     out_variants = {}
     while line_end2 := process.stdout.readline().decode('utf8'):
         if line_end2.find('bestmove') > -1:
-            print(line_end2.replace('\r\n',''), end=' ')
-            print('///',out_variants[line_end2.split(' ')[1].replace('\r\n','')])
+            # print(line_end2.replace('\r\n',''), end=' ')
+            best_move = line_end2.split(' ')[1].replace('\r\n','')
+            f.write(" /// " + str(best_move) + ' ' + str(out_variants[best_move]) + '\n')
             break
         else:
             # # либо считать среднее, либо выбирать НаИбОлЬшЕе
             temp = line_end2.split(' ')
-            temp_cp = temp[temp.index('cp') + 1]
-            temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
-            if (temp_pv in out_variants and out_variants[temp_pv] > temp_cp) or (not temp_pv in out_variants):
-                out_variants[temp_pv] = temp_cp
-    print(out_variants)
+            if i == 1:
+                f.write(line_end2)
+            # print(temp)
+            if 'cp' in temp and 'pv' in temp:
+                temp_cp = temp[temp.index('cp') + 1]
+                temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
+                if (temp_pv in out_variants and out_variants[temp_pv] > temp_cp) or (not temp_pv in out_variants):
+                    out_variants[temp_pv] = temp_cp
+            else:
+                f.write(line_end2)
 process.kill()
+res_time = time.time() - start_time
+res_min = str(res_time // 60)
+res_sec = str(float('{:.3f}'.format(res_time % 60)))
+f.write(res_min + " minutes, " + res_sec + " seconds")
+f.close()

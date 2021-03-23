@@ -13,9 +13,10 @@ chrome_options = Options()
 chrome_options.add_argument("--headless")
 
 temp_pll = set(rwd.player_list())
+old_out = Tk().clipboard_get()
 
 #12596
-for i in range(39561,5565999):
+for i in range(82715,5565999):
     try:
         driver = webdriver.Chrome('C:/Users/o-bob/Downloads/chromedriver_win32/chromedriver.exe')
         driver.wait = WebDriverWait(driver, 6)
@@ -32,6 +33,9 @@ for i in range(39561,5565999):
         act.perform()
 
         out = Tk().clipboard_get()
+        if old_out == out:
+            raise Exception("не то")
+        old_out = out
 
         kifu_id = rwd.kifu_add(out)
         counter = 0
@@ -51,6 +55,8 @@ for i in range(39561,5565999):
             counter += 1
     except TimeoutException:
         print(i)
+    except Exception as ex:
+        print(ex.args)
     finally:
         driver.close()
 

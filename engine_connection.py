@@ -123,53 +123,58 @@ f.close()
 #     f = open('new_output.txt', 'a')
 #     engine_list = ["gikou","Kristallweizen-wcsc29-avx2","YaneuraOu_KPPT-tournament-clang++-avx2","nozomi"]
 #     eng_time_param = [0,0,0,0]
+#     eng_win_counter = [0,0,0,0]
 
-#     for k1 in range(4):
-#         for k2 in range(k1+1,4):
-#             print(k1,k2)
-#             eng1 = Engine(engine_list[k1])
-#             eng2 = Engine(engine_list[k2])
+#     aa = [90,90,90]
+#     bb = [90,90,90]
+#     cc = [5,5,5]
+#     for table_iterator in range(3):
+#         for k1 in range(4):
+#             for k2 in range(k1+1,4):
+#                 print(k1,k2)
+#                 eng1 = Engine(engine_list[k1])
+#                 eng2 = Engine(engine_list[k2])
 
-#             for i in range(3):
-#                 moves_order = []
+#                 for i in range(3): #100
+#                     moves_order = []
 
-#                 # a = 300000
-#                 # b = 300000
-#                 a = 0
-#                 b = 0
-#                 c = 100
-#                 while True:
-#                     start_time = time.time()
-#                     move = eng1.make_move(moves_order,a,b,c)
-#                     dt = time.time() - start_time
-#                     a -= dt
-#                     if move == "resign":
-#                         f.write(eng1.get_adress() + " win\n")
-#                         print('')
-#                         eng1.not_end("win")
-#                         eng2.not_end("lose")
-#                         break
-#                     moves_order.append(move)
-#                     print(moves_order[-1], end=" ")
-                    
-#                     start_time = time.time()
-#                     move = eng2.make_move(moves_order,a,b,c)
-#                     dt = time.time() - start_time
-#                     b -= dt
-#                     if move == "resign":
-#                         f.write(eng2.get_adress() + " win\n")
-#                         print('')            
-#                         eng1.not_end("lose")
-#                         eng2.not_end("win")
-#                         break
-#                     moves_order.append(move)
-#                     print(moves_order[-1], end=" ")
+#                     a = aa[table_iterator]
+#                     b = bb[table_iterator]
+#                     c = cc[table_iterator]
+#                     while True:
+#                         start_time = time.time()
+#                         move = eng1.make_move(moves_order,a,b,c)
+#                         dt = time.time() - start_time
+#                         a -= dt
+#                         if move == "resign":
+#                             eng_win_counter[k1] += 1
+#                             print('')
+#                             eng1.not_end("win")
+#                             eng2.not_end("lose")
+#                             break
+#                         moves_order.append(move)
+#                         print(moves_order[-1], end=" ")
+                        
+#                         start_time = time.time()
+#                         move = eng2.make_move(moves_order,a,b,c)
+#                         dt = time.time() - start_time
+#                         b -= dt
+#                         if move == "resign":
+#                             eng_win_counter[k2] += 1
+#                             print('')            
+#                             eng1.not_end("lose")
+#                             eng2.not_end("win")
+#                             break
+#                         moves_order.append(move)
+#                         print(moves_order[-1], end=" ")
 
-#                 print("End")
-#             eng_time_param[k1] += eng1.get_time_for_test()
-#             eng_time_param[k2] += eng2.get_time_for_test()
-#             eng1.end()
-#             eng2.end()
-# for i in range(4):
-#     f.write(str(i)+str(float('{:.3f}'.format(eng_time_param[i]))) + "\n")
+#                     print("End")
+#                 eng_time_param[k1] += eng1.get_time_for_test()
+#                 eng_time_param[k2] += eng2.get_time_for_test()
+#                 eng1.end()
+#                 eng2.end()
+        # for i in range(4):
+        #     f.write(str(i) + "\n")
+        #     f.write(str(eng_win_counter[i]) + "\n")
+        #     f.write(str(float('{:.3f}'.format(eng_time_param[i]))) + "\n")
 # f.close()

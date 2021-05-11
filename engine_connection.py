@@ -25,6 +25,36 @@ class Connector:
             else:
                 res += line_usi
         return res
+    
+    def get_max_bestmove(self,process):
+        out_max_res = -111111111
+        while line_end := process.stdout.readline().decode('utf8'):
+            if line_end.find('bestmove') > -1:
+                return out_max_res
+            else:
+                temp = line_end.split(' ')
+                if 'cp' in temp:
+                    temp_max = int(temp[temp.index('cp') + 1])
+                    if out_max_res < temp_max:
+                        out_max_res = temp_max
+        print("вообще-то сюда не должно приходить...")
+        return out_max_res
+
+    def get_best_move(self,process):
+        out_variants = {}
+        while line_end := process.stdout.readline().decode('utf8'):
+            if line_end.find('bestmove') > -1:
+                best_move = line_end.split(' ')[1].replace('\r\n','')
+                return (best_move,out_variants[best_move])
+            else:
+                temp = line_end.split(' ')
+                if 'cp' in temp and 'pv' in temp:
+                    temp_cp = temp[temp.index('cp') + 1]
+                    temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
+                    if (temp_pv in out_variants and out_variants[temp_pv] > temp_cp) or (not temp_pv in out_variants):
+                        out_variants[temp_pv] = temp_cp
+        print("вообще-то сюда не должно приходить 2...")
+        return 0
 
 class Engine:
     def __init__(self,eng_adress):
@@ -73,6 +103,30 @@ class Engine:
         self.Time_for_test_depth += time.time() - temp_time
         return out
 
+    def cp_of_current_move(self,start_pos,move):
+        print(start_pos.count(' '))
+        position_str = 'position startpos moves ' + start_pos + '\r\n'
+        self.con.send_command_without_output(self.process,position_str)
+        go_str = "go infinite searchmoves " + move + '\r\n'
+        self.con.send_command_without_output(self.process,go_str)
+        time.sleep(10)
+        stop_str = 'stop\r\n'
+        self.con.send_command_without_output(self.process,stop_str)
+        # # выбираем наибольшее (можно попробовать среднее)
+        return self.con.get_max_bestmove(self.process)        
+    
+    def cp_of_next_move(self,start_pos):
+        print(start_pos.count(' '))
+        position_str = 'position startpos moves ' + start_pos + '\r\n'
+        self.con.send_command_without_output(self.process,position_str)
+        go_str = 'go infinite\r\n'
+        self.con.send_command_without_output(self.process,go_str)
+        time.sleep(10)
+        stop_str = 'stop\r\n'
+        self.con.send_command_without_output(self.process,stop_str)
+        # # выбираем наибольшее (можно попробовать среднее)
+        return self.con.get_best_move(self.process)
+
 if __name__ == '__main__':
     time_of_work = []
     f = open('new_output.txt', 'a')
@@ -112,11 +166,11 @@ if __name__ == '__main__':
                     f.write("stalemate " + eng1.get_adress() + " , " + eng2.get_adress() + "\n")
                 eng1.end()
                 eng2.end()
-for i in range(4):
-    f.write(str(i)+"\n")
-    for j in range(10):
-        f.write(str(float('{:.3f}'.format(eng_time_param[i][j]))) + "\n")
-f.close()
+    for i in range(4):
+        f.write(str(i)+"\n")
+        for j in range(10):
+            f.write(str(float('{:.3f}'.format(eng_time_param[i][j]))) + "\n")
+    f.close()
 
 # if __name__ == '__main__':
 #     time_of_work = []

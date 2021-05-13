@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import datetime
 import sqlite3
 
-con = sqlite3.connect("shogi_db.db")
+con = sqlite3.connect("shogi_db.db", detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 cur = con.cursor()
 cur.execute("PRAGMA foreign_keys = ON")
 

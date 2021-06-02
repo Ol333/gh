@@ -1,5 +1,4 @@
 import time
-import math
 import subprocess
 import matplotlib.pyplot as plt
 
@@ -89,7 +88,7 @@ class Engine:
         self.Time_for_test += time.time() - temp_time
         return out
         
-    def not_end(self,res):
+    def not_end(self,res): # необязательная команда
         self.con.send_command_without_output(self.process,"gameover "+res)
     
     def end(self):
@@ -214,7 +213,7 @@ if __name__ == '__main__':
 # if __name__ == '__main__':
 #     time_of_work = []
 #     f = open('new_output_2ris_test18.txt', 'a')
-#     engine_list = ["gikou","Kristallweizen-wcsc29-avx2","YaneuraOu_KPPT-tournament-clang++-avx2","nozomi"]
+#     engine_list = ["gikou","Kristallweizen-wcsc29-avx2","YaneuraOu_NNUE-tournament-clang++-avx2","nozomi"]
 #     aa = list(map(lambda x:x*1000,[1500,900,300]))
 #     cc = list(map(lambda x:x*1000,[0,5,10]))
 
@@ -239,26 +238,22 @@ if __name__ == '__main__':
 #                     while True and len(moves_order) < 320:
 #                         start_time = time.time()
 #                         move = eng1.make_move(moves_order,a,b,c)
-#                         dt = time.time() - start_time
+#                         dt = (time.time() - start_time) * 1000
 #                         a -= dt
-#                         if move == "resign" or b < 0:
-#                             eng_win_counter[k1] += 1
+#                         if move == "resign":
+#                             eng_win_counter[k2] += 1
 #                             print('')
-#                             eng1.not_end("win")
-#                             eng2.not_end("lose")
 #                             break
 #                         moves_order.append(move)
 #                         print(moves_order[-1], end=" ")
                         
 #                         start_time = time.time()
 #                         move = eng2.make_move(moves_order,a,b,c)
-#                         dt = time.time() - start_time
+#                         dt = (time.time() - start_time) * 1000
 #                         b -= dt
-#                         if move == "resign" or a < 0:
-#                             eng_win_counter[k2] += 1
-#                             print('')            
-#                             eng1.not_end("lose")
-#                             eng2.not_end("win")
+#                         if move == "resign":
+#                             eng_win_counter[k1] += 1
+#                             print('')
 #                             break
 #                         moves_order.append(move)
 #                         print(moves_order[-1], end=" ")

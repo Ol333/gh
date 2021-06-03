@@ -280,59 +280,62 @@ if __name__ == '__main__':
 # f.close()
 #3333333333333333333333333333333333333333333333333333333333
 # if __name__ == '__main__':
-#     max_depth = 5
+#     max_depth = 12
 #     engine_list = ["gikou","Kristallweizen-wcsc29-avx2","nozomi"]
+#     engine_list_for_graphic = ["gikou","Kristallweizen","nozomi"]
 #     counter_of_moves = [[],[],[]]
+#     eng_win_counter = [[],[],[]]
+#     eng_stalemate_counter = [[],[],[]]
 #     for i in range(3):
 #         for _ in range(max_depth):
 #             counter_of_moves[i].append([0,0])
+#             eng_win_counter[i].append(0)
+#             eng_stalemate_counter[i].append(0)
 
 #     for depth_counter in range(max_depth):
+#         print(depth_counter)
 #         for k2 in range(3):
 #             print(k2)
-#             eng1 = Engine("YaneuraOu_KPPT-tournament-clang++-avx2")
+#             eng1 = Engine("YaneuraOu_NNUE-tournament-clang++-avx2")
 #             eng2 = Engine(engine_list[k2])
 
 #             for i in range(10):
 #                 moves_order = []
 #                 while True and len(moves_order) < 320:
-#                     move = eng1.make_certain_depth_move(moves_order,depth_counter+1)
+#                     move = eng1.make_certain_depth_move(moves_order,17)
 #                     if move == "resign":
-#                         eng1.not_end("win")
-#                         eng2.not_end("lose")
+#                         eng_win_counter[k2][depth_counter] += 1
 #                         break
 #                     moves_order.append(move)
                     
 #                     move = eng2.make_certain_depth_move(moves_order,depth_counter+1)
 #                     if move == "resign":
-#                         eng1.not_end("lose")
-#                         eng2.not_end("win")
 #                         break
 #                     moves_order.append(move)
 #                 print("End")
 #             if len(moves_order)<320:
 #                 counter_of_moves[k2][depth_counter][0] += len(moves_order)
 #                 counter_of_moves[k2][depth_counter][1] += 1
+#             else:
+#                 eng_stalemate_counter[k2][depth_counter] += 1
 #             eng1.end()
 #             eng2.end()
 
 #     f = open('new_output_3ris.txt', 'w')
 
 #     for k in range(3):
+#         f.write(str(engine_list[k])+'\n')
 #         for i in range(max_depth):
 #             counter_of_moves[k][i] = counter_of_moves[k][i][0]/counter_of_moves[k][i][1]
-#             f.write("среднее время "+str(i)+' - '+str(counter_of_moves[k][i])+'\n')
+#             f.write("среднее время "+str(i)+' - '+str(counter_of_moves[k][i])+" победы - "+str(eng_win_counter[k][i])+" ничьи - "+str(eng_stalemate_counter[k][i])+'\n')
 #     f.close()
-    
-#     fig, ax = plt.subplots()
-
-#     ax.set_title("График зависимости продолжительности игры от глубины поиска хода", fontsize=16)
+        
+#     fig,ax = plt.subplots()
 #     ax.set_xlabel("Глубина поиска лучшего хода", fontsize=14)
 #     ax.set_ylabel("Среденее количество ходов в партии", fontsize=14)
 #     ax.grid(which="major",linewidth=1.2)
-#     for i in range(3):
-#         ax.plot(range(1,max_depth+1),counter_of_moves[i],label=engine_list[i])
-#     ax.legend()
+#     for k in range(3):
+#         ax.plot(range(1,max_depth+1),counter_of_moves[k],label=engine_list_for_graphic[k])
 #     ax.tick_params(which='major', length=10, width=1)
-
+#     ax.legend()
 #     plt.show()

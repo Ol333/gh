@@ -1,5 +1,4 @@
 import time
-import math
 import subprocess
 import matplotlib.pyplot as plt
 
@@ -89,7 +88,7 @@ class Engine:
         self.Time_for_test += time.time() - temp_time
         return out
         
-    def not_end(self,res):
+    def not_end(self,res): # необязательная команда
         self.con.send_command_without_output(self.process,"gameover "+res)
     
     def end(self):
@@ -130,7 +129,8 @@ class Engine:
         return self.con.get_best_move(self.process)
 
 if __name__ == '__main__':
-    max_depth = 8
+    start_depth = 15
+    max_depth = 17
     time_of_work = []
     stalemate_list = [[],[],[],[]]
     engine_list = ["gikou","Kristallweizen-wcsc29-avx2","YaneuraOu_KPPT-tournament-clang++-avx2","nozomi"]
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     for i in range(max_depth):
         counter_of_moves.append([0,0])
 
-    for depth_counter in range(max_depth):
+    for depth_counter in range(start_depth,max_depth):
         for k1 in range(4):
             for k2 in range(k1+1,4):
                 print(k1,k2)
@@ -174,8 +174,8 @@ if __name__ == '__main__':
                 eng1.end()
                 eng2.end()
     for i in range(4):
-        for j in range(max_depth):
-            count = max_depth
+        for j in range(start_depth,max_depth):
+            count = max_depth-start_depth
             if j in stalemate_list[i]:
                 count -= stalemate_list[i].count(j)
             eng_time_param[i][j] = eng_time_param[i][j] / count
@@ -183,14 +183,13 @@ if __name__ == '__main__':
     f = open('new_output.txt', 'w')
     for i in range(4):
         f.write(str(i)+"\n")
-        for j in range(max_depth):
+        for j in range(start_depth,max_depth):
             f.write(str(float('{:.3f}'.format(eng_time_param[i][j]))) + "\n")
     time_mas_labels = []
-    for i in range(max_depth):
+    for i in range(start_depth,max_depth):
         counter_of_moves[i] = counter_of_moves[i][0]/counter_of_moves[i][1]
         time_mas_labels.append(counter_of_moves[i])
-        f.write("среднее время "+str(i)+' - '+str(counter_of_moves[i])+'\n')
-        counter_of_moves[i] = math.log(counter_of_moves[i],30)
+        f.write("среднее ходов "+str(i)+' - '+str(counter_of_moves[i])+'\n')
     f.close()
     
     fig, ax = plt.subplots()
@@ -203,7 +202,7 @@ if __name__ == '__main__':
     ax.plot(range(1,max_depth+1),eng_time_param[1],label="Kristallweizen-wcsc29-avx2")
     ax.plot(range(1,max_depth+1),eng_time_param[2],label="YaneuraOu_KPPT-tournament-clang++-avx2")
     ax.plot(range(1,max_depth+1),eng_time_param[3],label="nozomi")
-    rect = ax.bar(range(1,max_depth+1),counter_of_moves,0.9,label='Общее количество ходов',color=["#FFF9CD"])
+    rect = ax.bar(range(1,max_depth-+1),counter_of_moves,0.9,label='Общее количество ходов',color=["#FFF9CD"])
     ax.bar_label(rect,time_mas_labels,padding=3)
     ax.legend()
     ax.tick_params(which='major', length=10, width=1)
@@ -213,14 +212,12 @@ if __name__ == '__main__':
 # if __name__ == '__main__':
 #     time_of_work = []
 #     f = open('new_output_2ris_test18.txt', 'a')
-#     engine_list = ["gikou","Kristallweizen-wcsc29-avx2","YaneuraOu_KPPT-tournament-clang++-avx2","nozomi"]
-
+#     engine_list = ["gikou","Kristallweizen-wcsc29-avx2","YaneuraOu_NNUE-tournament-clang++-avx2","nozomi"]
 #     aa = list(map(lambda x:x*1000,[1500,900,300]))
 #     cc = list(map(lambda x:x*1000,[0,5,10]))
 
-#     time_sum = 0
-
 #     for table_iterator in range(3):
+#         time_sum = 0
 #         eng_time_param = [0,0,0,0]
 #         eng_win_counter = [0,0,0,0]
 #         eng_stalemate_counter = [0,0,0,0]
@@ -240,26 +237,22 @@ if __name__ == '__main__':
 #                     while True and len(moves_order) < 320:
 #                         start_time = time.time()
 #                         move = eng1.make_move(moves_order,a,b,c)
-#                         dt = time.time() - start_time
+#                         dt = (time.time() - start_time) * 1000
 #                         a -= dt
 #                         if move == "resign":
-#                             eng_win_counter[k1] += 1
+#                             eng_win_counter[k2] += 1
 #                             print('')
-#                             eng1.not_end("win")
-#                             eng2.not_end("lose")
 #                             break
 #                         moves_order.append(move)
 #                         print(moves_order[-1], end=" ")
                         
 #                         start_time = time.time()
 #                         move = eng2.make_move(moves_order,a,b,c)
-#                         dt = time.time() - start_time
+#                         dt = (time.time() - start_time) * 1000
 #                         b -= dt
 #                         if move == "resign":
-#                             eng_win_counter[k2] += 1
-#                             print('')            
-#                             eng1.not_end("lose")
-#                             eng2.not_end("win")
+#                             eng_win_counter[k1] += 1
+#                             print('')
 #                             break
 #                         moves_order.append(move)
 #                         print(moves_order[-1], end=" ")
@@ -271,10 +264,11 @@ if __name__ == '__main__':
 #                 eng_time_param[k2] += eng2.get_time_for_test()
 #                 eng1.end()
 #                 eng2.end()
-#             for i in range(4):
-#                 f.write(str(engine_list[i]) + " ")
-#                 f.write("Победы: " + str(eng_win_counter[i]) + "")
-#                 f.write("Ничиьи: " +str(eng_stalemate_counter[i]) + "\n")
+#             if k1 == 3:
+#                 for i in range(4):
+#                     f.write(str(engine_list[i]) + " ")
+#                     f.write("Победы: " + str(eng_win_counter[i]) + " ")
+#                     f.write("Ничиьи: " +str(eng_stalemate_counter[i]) + "\n")
 #             time_sum += eng_time_param[k1]
 #         f.write(str(float('{:.3f}'.format(time_sum))) + "\n")
 # f.close()

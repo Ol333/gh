@@ -1,41 +1,97 @@
+import time
 import matplotlib.pyplot as plt
+import engine_connection as ec
 
-max_depth = 17
-eng_time_param = []
-f = open('new_output_1ris_check — копия.txt','r')
-counter = 0
-time_mas = []
-time_mas_labels = []
-for line in f:
-    line = line.replace('\n','')
-    if "среднее" in line:
-        temp = float(line.split(' ')[-1])
-        time_mas_labels.append(round(temp))
-        # temp = math.log(temp,30)
-        time_mas.append(temp)
+if __name__ == '__main__':
+    answear = input("Запустить отрисовку графика? Y/N")
+    if answear == "Y":
+        engine_list = ["gikou","Kristallweizen","YaneuraOu","nozomi"]
+        win_mas = [[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+        f = open('new_output_2ris_test18_5.txt','r')
+        count = 0
+        k = 0
+        for line in f:
+            line = line.replace('\n','')
+            if line[:5] in ['gikou','Krist','Yaneu','nozom']:
+                win_mas[count][k] = int(line.split(' ')[2])
+                k += 1
+            if line in ["900000 5000","300000 10000"]:
+                print("?")
+                count += 1
+                k = 0
+        # win_mas[0] = [6, 23, 30, 11]
+        # win_mas[1] = [21, 25, 25, 19]
+        # win_mas[2] = [36, 24, 11, 17]
+
+        title_mas = ["25 мин. (0 с)","15 мин. (5 с)","5 мин. (10 с)"]
+        fig, axes = plt.subplots(nrows = 1, ncols = 3)
+        for i in range(3):
+            axes[i].set_title(title_mas[i], fontsize=16)
+            axes[i].set_xlabel("Движок", fontsize=14)
+            axes[i].set_ylabel("Количество побед, шт.", fontsize=14)
+            rect = axes[i].bar(engine_list,win_mas[i],0.9,label='Количество побед',color=["#FFF9CD"])
+            axes[i].legend()
+        plt.show()
     else:
-        if line == str(counter):
-            eng_time_param.append([])
-            counter += 1
-        else:
-            eng_time_param[counter-1].append(float(line))
-print(eng_time_param)
-print(time_mas)
+        time_of_work = []
+        f = open('new_output_2ris_test18.txt', 'a')
+        engine_list = ["gikou","Kristallweizen-wcsc29-avx2","YaneuraOu_NNUE-tournament-clang++-avx2","nozomi"]
+        aa = list(map(lambda x:x*1000,[1500,900,300]))
+        cc = list(map(lambda x:x*1000,[0,5,10]))
 
-fig, ax = plt.subplots()
+        for table_iterator in range(3):
+            time_sum = 0
+            eng_time_param = [0,0,0,0]
+            eng_win_counter = [0,0,0,0]
+            eng_stalemate_counter = [0,0,0,0]
+            f.write(str(aa[table_iterator])+' '+str(cc[table_iterator]) + "\n")
+            for k1 in range(4):
+                for k2 in range(k1+1,4):
+                    print(k1,k2)
+                    eng1 = ec.Engine(engine_list[k1])
+                    eng2 = ec.Engine(engine_list[k2])
 
-ax.set_title("Важный график зависимости времени размышлений от глубины поиска хода", fontsize=16)
-ax.set_xlabel("глубина поиска лучшего хода", fontsize=14)
-ax.set_ylabel("время, потраченное движком на ходы в течение игры, с", fontsize=14)
-ax.grid(which="major",linewidth=1.2)
-ax.plot(range(1,max_depth+1),eng_time_param[0],label="gikou")
-ax.plot(range(1,max_depth+1),eng_time_param[1],label="Kristallweizen")
-ax.plot(range(1,max_depth+1),eng_time_param[2],label="YaneuraOu")
-ax.plot(range(1,max_depth+1),eng_time_param[3],label="nozomi")
+                    for i in range(3): #(100) ~17 - 102
+                        moves_order = []
 
-rect = ax.bar(range(1,max_depth+1),time_mas,0.9,label='Общее количество ходов',color=["#E6DD26"])
-ax.bar_label(rect,time_mas_labels,padding=3)
-
-ax.legend()
-ax.tick_params(which='major', length=10, width=1)
-plt.show()
+                        a = aa[table_iterator]
+                        b = aa[table_iterator]
+                        c = cc[table_iterator]
+                        while True and len(moves_order) < 320:
+                            start_time = time.time()
+                            move = eng1.make_move(moves_order,a,b,c)
+                            dt = (time.time() - start_time) * 1000
+                            a -= dt
+                            if move == "resign":
+                                eng_win_counter[k2] += 1
+                                print('')
+                                break
+                            moves_order.append(move)
+                            print(moves_order[-1], end=" ")
+                            
+                            start_time = time.time()
+                            move = eng2.make_move(moves_order,a,b,c)
+                            dt = (time.time() - start_time) * 1000
+                            b -= dt
+                            if move == "resign":
+                                eng_win_counter[k1] += 1
+                                print('')
+                                break
+                            moves_order.append(move)
+                            print(moves_order[-1], end=" ")
+                        if len(moves_order)>=320:
+                            eng_stalemate_counter[k1] += 1
+                            eng_stalemate_counter[k2] += 1
+                        print("End")
+                    eng_time_param[k1] += eng1.get_time_for_test()
+                    eng_time_param[k2] += eng2.get_time_for_test()
+                    eng1.end()
+                    eng2.end()
+                if k1 == 3:
+                    for i in range(4):
+                        f.write(str(engine_list[i]) + " ")
+                        f.write("Победы: " + str(eng_win_counter[i]) + " ")
+                        f.write("Ничиьи: " +str(eng_stalemate_counter[i]) + "\n")
+                time_sum += eng_time_param[k1]
+            f.write(str(float('{:.3f}'.format(time_sum))) + "\n")
+    f.close()

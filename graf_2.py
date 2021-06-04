@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
-max_depth = 15
+max_depth = 17
 eng_time_param = []
-f = open('new_output_1ris_check.txt','r')
+f = open('new_output_1ris_check — копия.txt','r')
 counter = 0
 time_mas = []
 time_mas_labels = []
@@ -29,11 +29,11 @@ ax.set_xlabel("глубина поиска лучшего хода", fontsize=14
 ax.set_ylabel("время, потраченное движком на ходы в течение игры, с", fontsize=14)
 ax.grid(which="major",linewidth=1.2)
 ax.plot(range(1,max_depth+1),eng_time_param[0],label="gikou")
-ax.plot(range(1,max_depth+1),eng_time_param[1],label="Kristallweizen-wcsc29-avx2")
-ax.plot(range(1,max_depth+1),eng_time_param[2],label="YaneuraOu_KPPT-tournament-clang++-avx2")
+ax.plot(range(1,max_depth+1),eng_time_param[1],label="Kristallweizen")
+ax.plot(range(1,max_depth+1),eng_time_param[2],label="YaneuraOu")
 ax.plot(range(1,max_depth+1),eng_time_param[3],label="nozomi")
 
-rect = ax.bar(range(1,max_depth+1),time_mas,0.9,label='Общее количество ходов',color=["#FFF9CD"])
+rect = ax.bar(range(1,max_depth+1),time_mas,0.9,label='Общее количество ходов',color=["#E6DD26"])
 ax.bar_label(rect,time_mas_labels,padding=3)
 
 ax.legend()

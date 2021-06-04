@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 
 engine_list = ["gikou","Kristallweizen","YaneuraOu","nozomi"]
-win_mas_1 = [10,10,15,0]
-win_mas_2 = [12,7,14,1]
-win_mas_3 = [10,5,16,4]
+win_mas_1 = [6, 23, 30, 11]
+win_mas_2 = [21, 25, 25, 19]
+win_mas_3 = [36, 24, 11, 17]
 
 fig, axes = plt.subplots(nrows = 1, ncols = 3)
 

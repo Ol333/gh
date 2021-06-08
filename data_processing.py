@@ -6,19 +6,19 @@ import datetime
 import shogi.KIF
 
 import rab_with_db as rwd
-import engine_connection as enc
+import engine_connection as ec
 
 if __name__ == "__main__":
-    run_counter = sys.argv[1:]
-    #print(run_counter)
-    pl_list = rwd.player_list()
-    print(len(pl_list))
+    run_counter = int(sys.argv[1])
+    print(run_counter, type(run_counter))
+    pl_list = rwd.player_list() # зачем?..
+    # print(len(pl_list))
 
     for i_player in range(run_counter,run_counter+1): #запускаем по одному человеку за запуск
         # 66 yukitakahashi
-        pl_kif_list = rwd.players_kifu_list(pl_list[i_player])
-        for i_kif in pl_kif_list:
-    ##        l = rwd.players_kifu_list(66)[0]
+        pl_kif_list = rwd.players_kifu_list(i_player)
+        for i_kif in range(1): #pl_kif_list:
+        # l = rwd.players_kifu_list(66)[0]
             l = pl_kif_list[i_kif]
 
             kif = shogi.KIF.Parser.parse_str(l)[0]
@@ -34,19 +34,24 @@ if __name__ == "__main__":
             print(conditions)
             ##date = datetime.datetime.strptime(date,"%Y/%m/%d")
 
-            eng = enc.Engine("gikou")
-            f = open('output_{0}_{1}.txt'.format(pl_list[i_player],i_kif), 'w')
+            eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-sse42")
+            f = open('q_output_{0}_{1}.txt'.format(pl_list[i_player],i_kif), 'w')
 
             start_time = time.time()
             start_pos = ""
             for i in range(len(kif['moves'])):
                 # найти cp за текущий ход
-                cur_res = eng.cp_of_current_move(start_pos,kif['moves'][i])
+                cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=17)
                 f.write(' /// ' + str(cur_res) + '\n') #вывести в бд
                 # найти cp за лучший следующий ход
                 start_pos += ' ' + kif['moves'][i]
-                bst_mov,mov_cp = eng.cp_of_next_move(start_pos)
-                f.write(" /// " + str(bst_mov) + ' ' + str(mov_cp) + '\n') #вывести в бд
+                temp_because_yaneoura_besit = eng.cp_of_next_move(start_pos, depth=17)
+                if temp_because_yaneoura_besit[1] == -111111111:
+                    bst_mov = temp_because_yaneoura_besit[0]
+                    mov_cp = eng.cp_of_current_move(start_pos, bst_mov, depth=17)
+                else:
+                    bst_mov,mov_cp = temp_because_yaneoura_besit
+                f.write(' '+ kif['moves'][i] + " /// " + str(bst_mov) + ' ' + str(mov_cp) + '\n') #вывести в бд
             eng.end()
             res_time = time.time() - start_time
             res_min = str(res_time // 60)

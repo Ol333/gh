@@ -28,32 +28,38 @@ class Connector:
         return res
     
     def get_max_bestmove(self,process):
-        out_max_res = -111111111
+        out_variants = {}
         while line_end := process.stdout.readline().decode('utf8'):
             if line_end.find('bestmove') > -1:
-                return out_max_res
+                temp_mas = line_end.replace('\r\n','').split(' ')
+                if temp_mas[1] == 'resign':
+                    return -4000
+                else:
+                    return out_variants[temp_mas[1]]
             else:
                 temp = line_end.split(' ')
                 if 'cp' in temp:
-                    temp_max = int(temp[temp.index('cp') + 1])
-                    if out_max_res < temp_max:
-                        out_max_res = temp_max
+                    temp_cp = int(temp[temp.index('cp') + 1])
+                    temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
+                    out_variants[temp_pv] = temp_cp
         print("вообще-то сюда не должно приходить...")
-        return out_max_res
+        return 0
 
     def get_best_move(self,process):
         out_variants = {}
         while line_end := process.stdout.readline().decode('utf8'):
             if line_end.find('bestmove') > -1:
                 best_move = line_end.split(' ')[1].replace('\r\n','')
-                return (best_move,out_variants[best_move])
+                if not (best_move in out_variants):
+                    return (best_move,-111111111)
+                else:
+                    return (best_move,out_variants[best_move])
             else:
                 temp = line_end.split(' ')
                 if 'cp' in temp and 'pv' in temp:
-                    temp_cp = temp[temp.index('cp') + 1]
+                    temp_cp = int(temp[temp.index('cp') + 1])
                     temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
-                    if (temp_pv in out_variants and out_variants[temp_pv] > temp_cp) or (not temp_pv in out_variants):
-                        out_variants[temp_pv] = temp_cp
+                    out_variants[temp_pv] = temp_cp
         print("вообще-то сюда не должно приходить 2...")
         return 0
 
@@ -104,11 +110,12 @@ class Engine:
         self.Time_for_test_depth += time.time() - temp_time
         return out
 
-    def cp_of_current_move(self,start_pos,move):
+    def cp_of_current_move(self,start_pos,move,depth):
         print(start_pos.count(' '))
         position_str = 'position startpos moves ' + start_pos + '\r\n'
         self.con.send_command_without_output(self.process,position_str)
-        go_str = "go infinite searchmoves " + move + '\r\n'
+        # go_str = "go infinite searchmoves " + move + '\r\n'
+        go_str = "go depth {} searchmoves ".format(depth) + move + '\r\n'
         self.con.send_command_without_output(self.process,go_str)
         time.sleep(10)
         stop_str = 'stop\r\n'
@@ -116,11 +123,12 @@ class Engine:
         # # выбираем наибольшее (можно попробовать среднее)
         return self.con.get_max_bestmove(self.process)        
     
-    def cp_of_next_move(self,start_pos):
+    def cp_of_next_move(self,start_pos,depth):
         print(start_pos.count(' '))
         position_str = 'position startpos moves ' + start_pos + '\r\n'
         self.con.send_command_without_output(self.process,position_str)
-        go_str = 'go infinite\r\n'
+        # go_str = 'go infinite\r\n'
+        go_str = 'go depth {0} btime {1} wtime {1} byoyomi {2}'.format(depth,0,100000000)
         self.con.send_command_without_output(self.process,go_str)
         time.sleep(10)
         stop_str = 'stop\r\n'

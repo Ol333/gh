@@ -42,7 +42,7 @@ if __name__ == "__main__":
             for i in range(len(kif['moves'])):
                 # найти cp за текущий ход
                 cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=17)
-                f.write(' /// ' + str(cur_res) + '\n') #вывести в бд
+                f.write(' '+ kif['moves'][i] + ' /// ' + str(cur_res) + '\n') #вывести в бд
                 # найти cp за лучший следующий ход
                 start_pos += ' ' + kif['moves'][i]
                 temp_because_yaneoura_besit = eng.cp_of_next_move(start_pos, depth=17)
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                     mov_cp = eng.cp_of_current_move(start_pos, bst_mov, depth=17)
                 else:
                     bst_mov,mov_cp = temp_because_yaneoura_besit
-                f.write(' '+ kif['moves'][i] + " /// " + str(bst_mov) + ' ' + str(mov_cp) + '\n') #вывести в бд
+                f.write(" /// " + str(bst_mov) + ' ' + str(mov_cp) + '\n') #вывести в бд
             eng.end()
             res_time = time.time() - start_time
             res_min = str(res_time // 60)

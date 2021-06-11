@@ -33,31 +33,32 @@ if __name__ == "__main__":
             print(date)
             print(conditions)
             ##date = datetime.datetime.strptime(date,"%Y/%m/%d")
+            
+            for j in range(10): # for j in range(10,20)
+                eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-avx2")
+                f = open('Y_output_{0}_{1}_{2}.txt'.format(pl_list[i_player],i_kif,j), 'w')
 
-            eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-sse42")
-            f = open('q_output_{0}_{1}.txt'.format(pl_list[i_player],i_kif), 'w')
-
-            start_time = time.time()
-            start_pos = ""
-            for i in range(len(kif['moves'])):
-                # найти cp за текущий ход
-                cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=17)
-                f.write(' '+ kif['moves'][i] + ' /// ' + str(cur_res) + '\n') #вывести в бд
-                # найти cp за лучший следующий ход
-                start_pos += ' ' + kif['moves'][i]
-                temp_because_yaneoura_besit = eng.cp_of_next_move(start_pos, depth=17)
-                if temp_because_yaneoura_besit[1] == -111111111:
-                    bst_mov = temp_because_yaneoura_besit[0]
-                    mov_cp = eng.cp_of_current_move(start_pos, bst_mov, depth=17)
-                else:
-                    bst_mov,mov_cp = temp_because_yaneoura_besit
-                f.write(" /// " + str(bst_mov) + ' ' + str(mov_cp) + '\n') #вывести в бд
-            eng.end()
-            res_time = time.time() - start_time
-            res_min = str(res_time // 60)
-            res_sec = str(float('{:.3f}'.format(res_time % 60)))
-            f.write(res_min + " minutes, " + res_sec + " seconds")
-            f.close()
+                start_time = time.time()
+                start_pos = ""
+                for i in range(len(kif['moves'])):
+                    # найти cp за текущий ход
+                    cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=17)
+                    f.write(' '+ kif['moves'][i] + ' /// ' + str(cur_res) + '\n') #вывести в бд
+                    # найти cp за лучший следующий ход
+                    start_pos += ' ' + kif['moves'][i]
+                    temp_because_yaneoura_besit = eng.cp_of_next_move(start_pos, depth=17)
+                    if temp_because_yaneoura_besit[1] == -111111111:
+                        bst_mov = temp_because_yaneoura_besit[0]
+                        mov_cp = eng.cp_of_current_move(start_pos, bst_mov, depth=17)
+                    else:
+                        bst_mov,mov_cp = temp_because_yaneoura_besit
+                    f.write(" /// " + str(bst_mov) + ' ' + str(mov_cp) + '\n') #вывести в бд
+                eng.end()
+                res_time = time.time() - start_time
+                res_min = str(res_time // 60)
+                res_sec = str(float('{:.3f}'.format(res_time % 60)))
+                f.write(res_min + " minutes, " + res_sec + " seconds")
+                f.close()
 
 
 # в процессе изменяется .db

@@ -1,6 +1,5 @@
 import time
 import subprocess
-import matplotlib.pyplot as plt
 
 class Connector:
     def send_command(self, process, command, expectation):
@@ -117,9 +116,9 @@ class Engine:
         # go_str = "go infinite searchmoves " + move + '\r\n'
         go_str = "go depth {} searchmoves ".format(depth) + move + '\r\n'
         self.con.send_command_without_output(self.process,go_str)
-        time.sleep(10)
-        stop_str = 'stop\r\n'
-        self.con.send_command_without_output(self.process,stop_str)
+        # time.sleep(10)
+        # stop_str = 'stop\r\n'
+        # self.con.send_command_without_output(self.process,stop_str)
         # # выбираем наибольшее (можно попробовать среднее)
         return self.con.get_max_bestmove(self.process)        
     
@@ -130,8 +129,8 @@ class Engine:
         # go_str = 'go infinite\r\n'
         go_str = 'go depth {0} btime {1} wtime {1} byoyomi {2}'.format(depth,0,100000000)
         self.con.send_command_without_output(self.process,go_str)
-        time.sleep(10)
-        stop_str = 'stop\r\n'
-        self.con.send_command_without_output(self.process,stop_str)
+        # time.sleep(10)
+        # stop_str = 'stop\r\n'
+        # self.con.send_command_without_output(self.process,stop_str)
         # # выбираем наибольшее (можно попробовать среднее)
         return self.con.get_best_move(self.process)

@@ -48,8 +48,13 @@ if __name__ == '__main__':
         counter_of_moves = []
         for i in range(max_depth):
             counter_of_moves.append([0,0])
+        eng_win_counter = [[],[],[],[]]
+        for i in range(4):
+            for _ in range(max_depth):
+                eng_win_counter[i].append(0)
 
         for depth_counter in range(start_depth,max_depth):
+            print(depth_counter)
             for k1 in range(4):
                 for k2 in range(k1+1,4):
                     print(k1,k2)
@@ -61,18 +66,24 @@ if __name__ == '__main__':
                         while True and len(moves_order) < 320:
                             move = eng1.make_certain_depth_move(moves_order,depth_counter+1)
                             if move == "resign":
-                                eng1.not_end("win")
-                                eng2.not_end("lose")
+                                eng_win_counter[k2][depth_counter] += 1
+                                break
+                            if 'win' in move or 'info' in move:
+                                print('dfd')
+                                eng_win_counter[k2][depth_counter] += 1
                                 break
                             moves_order.append(move)
                             
                             move = eng2.make_certain_depth_move(moves_order,depth_counter+1)
                             if move == "resign":
-                                eng1.not_end("lose")
-                                eng2.not_end("win")
+                                eng_win_counter[k1][depth_counter] += 1
+                                break
+                            if 'win' in move or 'info' in move:
+                                print('dfd')
+                                eng_win_counter[k1][depth_counter] += 1
                                 break
                             moves_order.append(move)
-                        print("End")
+                        # print("End")
                     if len(moves_order)<320:
                         eng_time_param[k1][depth_counter] += eng1.get_time_for_test_depth()
                         eng_time_param[k2][depth_counter] += eng2.get_time_for_test_depth()
@@ -84,11 +95,14 @@ if __name__ == '__main__':
                     eng1.end()
                     eng2.end()
         for i in range(4):
+            print(engine_list[i],end=' ')
             for j in range(start_depth,max_depth):
+                print(eng_win_counter[i][j],end=' ')
                 count = max_depth-start_depth
                 if j in stalemate_list[i]:
                     count -= stalemate_list[i].count(j)
                 eng_time_param[i][j] = eng_time_param[i][j] / count
+            print('')
 
         f = open('new_output.txt', 'w')
         for i in range(4):

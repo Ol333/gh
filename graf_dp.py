@@ -4,7 +4,7 @@ import numpy as np
 if __name__ == '__main__':
     colors0 = ['b','r']
     colors00 = ['tab:blue','tab:red']
-    f_name = "q_output_(67, 'ottfoekst')_0.txt"
+    f_name = "Y_output_(67, 'ottfoekst')_0_0.txt"
     real_cp_sente = []        # синий
     real_cp_gote = []        # красный
     best_next_move_sente = [] # синий
@@ -29,6 +29,13 @@ if __name__ == '__main__':
             print(' '.join(line_mas))
         else:
             if iterator%2 == 0:
+                iter = (iterator//2)%2
+                move_buf = line_mas[-2]
+                if iter == 0:
+                    best_next_move_sente.append(int(line_mas[-1])*sign[iter])
+                else:
+                    best_next_move_gote.append(int(line_mas[-1])*sign[iter])
+            else:
                 if iterator//2 % 2 == 0:
                     real_cp_sente.append(int(line_mas[-1])*sign[iterator//2%2])
                 else:
@@ -36,13 +43,6 @@ if __name__ == '__main__':
                 if move_buf == line_mas[1]:
                     dot_mas[0].append(int(iterator//2))
                     dot_mas[1].append(int(line_mas[-1])*sign[iterator//2%2])
-            else:
-                iter = (iterator//2+1)%2
-                move_buf = line_mas[-2]
-                if iter == 1:
-                    best_next_move_gote.append(int(line_mas[-1])*sign[iter])
-                else:
-                    best_next_move_sente.append(int(line_mas[-1])*sign[iter])
             iterator += 1
 
     f.close()
@@ -50,8 +50,8 @@ if __name__ == '__main__':
     iterator = (iterator+1)//2
     ax.bar(range(0,iterator,2),real_cp_sente,label="поиск cp за реальный ход сенте",color=colors00[0])
     ax.bar(range(1,iterator,2),real_cp_gote,label="поиск cp за реальный ход готе",color=colors00[1])
-    ax.plot(np.arange(1.5,iterator+0.5,2.0),best_next_move_sente,label="лучший следующий ход сенте",marker="o",color=colors0[0])        
-    ax.plot(np.arange(0.5,iterator+1.5,2.0),best_next_move_gote,label="лучший следующий ход готе",marker="o",color=colors0[1])
+    ax.plot(np.arange(-0.5,iterator+0.5,2.0),best_next_move_sente,label="лучший следующий ход сенте",marker="o",color=colors0[0])        
+    ax.plot(np.arange(0.5,iterator-0.5,2.0),best_next_move_gote,label="лучший следующий ход готе",marker="o",color=colors0[1])
     ax.scatter(dot_mas[0],dot_mas[1],label="Совпадение хода "+str(len(dot_mas[0]))+" шт.", s=70, marker='*', color='g')
     ax.legend()
     plt.show()

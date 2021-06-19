@@ -1,7 +1,5 @@
 import sys
 import time
-import subprocess
-import datetime
 
 import shogi.KIF
 
@@ -41,18 +39,18 @@ if __name__ == "__main__":
                 start_time = time.time()
                 start_pos = ""
                 for i in range(len(kif['moves'])):
-                    # найти cp за текущий ход
-                    cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=17)
-                    f.write(' '+ kif['moves'][i] + ' /// ' + str(cur_res) + '\n') #вывести в бд
-                    # найти cp за лучший следующий ход
-                    start_pos += ' ' + kif['moves'][i]
-                    temp_because_yaneoura_besit = eng.cp_of_next_move(start_pos, depth=17)
+                    # найти cp за лучший рекомендуемый следующий ход
+                    temp_because_yaneoura_besit = eng.cp_of_next_move(start_pos, depth=5)
                     if temp_because_yaneoura_besit[1] == -111111111:
                         bst_mov = temp_because_yaneoura_besit[0]
-                        mov_cp = eng.cp_of_current_move(start_pos, bst_mov, depth=17)
+                        mov_cp = eng.cp_of_current_move(start_pos, bst_mov, depth=5)
                     else:
                         bst_mov,mov_cp = temp_because_yaneoura_besit
                     f.write(" /// " + str(bst_mov) + ' ' + str(mov_cp) + '\n') #вывести в бд
+                    # найти cp за текущий ход
+                    cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=5)
+                    f.write(' '+ kif['moves'][i] + ' /// ' + str(cur_res) + '\n') #вывести в бд
+                    start_pos += ' ' + kif['moves'][i]
                 eng.end()
                 res_time = time.time() - start_time
                 res_min = str(res_time // 60)

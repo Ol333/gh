@@ -41,6 +41,10 @@ class Connector:
                     temp_cp = int(temp[temp.index('cp') + 1])
                     temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
                     out_variants[temp_pv] = temp_cp
+                elif 'mate' in temp:
+                    temp_cp = 4000
+                    temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
+                    out_variants[temp_pv] = temp_cp
         print("вообще-то сюда не должно приходить...")
         return 0
 
@@ -110,7 +114,7 @@ class Engine:
         return out
 
     def cp_of_current_move(self,start_pos,move,depth):
-        print(start_pos.count(' '))
+        # print(start_pos.count(' '))
         position_str = 'position startpos moves ' + start_pos + '\r\n'
         self.con.send_command_without_output(self.process,position_str)
         # go_str = "go infinite searchmoves " + move + '\r\n'
@@ -123,7 +127,7 @@ class Engine:
         return self.con.get_max_bestmove(self.process)        
     
     def cp_of_next_move(self,start_pos,depth):
-        print(start_pos.count(' '))
+        # print(start_pos.count(' '))
         position_str = 'position startpos moves ' + start_pos + '\r\n'
         self.con.send_command_without_output(self.process,position_str)
         # go_str = 'go infinite\r\n'

@@ -62,17 +62,20 @@ def player_loginbyid(id):
     a = a[0]
     return a
 
-def players_kifu_list(id):
+def players_kifu_list(id,li):
     mas = []
     res = []
-    cur.execute(f"SELECT id_Kifu FROM Participation WHERE id_Player={id}")
+    cur.execute(f"SELECT id_Kifu,id_Player FROM Participation WHERE id_Player={id}")
     for a in cur.fetchall():
-        mas.append(a[0])
-    for a in mas:
-        cur.execute(f"SELECT kifu FROM Kifu WHERE id={a}")
-        for aa in cur.fetchall():
-            res.append(aa[0])
-    return res
+        mas.append(a)
+    if li:
+        for a in mas:
+            cur.execute(f"SELECT kifu FROM Kifu WHERE id={a[0]}")
+            for aa in cur.fetchall():
+                res.append(aa[0])
+        return res
+    else:
+        return mas
 
 def move_add(kifu_id,numb,rec_cp,rec_pv,real_cp): #добавить всякое для таблицы Move
     cur.execute("""INSERT into Move values

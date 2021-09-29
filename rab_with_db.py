@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import datetime
 import sqlite3
 
 con = sqlite3.connect("shogi_db.db", detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
@@ -41,12 +40,12 @@ def participation_add(player_id,kifu_id):
     return cur.lastrowid
 
 def participation_del(id):
-    cur.execute(f"DELETE FROM Participation WHERE id='{id}'")
+    cur.execute(f"DELETE FROM Participation WHERE id_Kifu='{id}'")
     con.commit()
 
-def player_list():
+def table_list(table_name):
     mas = []
-    cur.execute("SELECT * FROM Player")
+    cur.execute("SELECT * FROM {}".format(table_name))
     for a in cur.fetchall():
         mas.append(a)
     return mas
@@ -74,6 +73,21 @@ def players_kifu_list(id):
         for aa in cur.fetchall():
             res.append(aa[0])
     return res
+
+def move_add(kifu_id,numb,rec_cp,rec_pv,real_cp): #добавить всякое для таблицы Move
+    cur.execute("""INSERT into Move values
+                    (null,?,?,?,?,?)""",(kifu_id,numb,rec_cp,rec_pv,real_cp))
+    con.commit()
+    return cur.lastrowid
+
+def get_cp(kifu_id,color):
+    mas = []
+    cur.execute(f"""SELECT recommended_move,recommended_evaluate,real_evaluate 
+                    FROM Move
+                    WHERE id_Kifu='{kifu_id}' AND number%2 = {color}""")
+    for a in cur.fetchall():
+        mas.append(a)
+    return mas
 
 # ##вывод всех таблиц
 # def print_tabl():

@@ -28,12 +28,16 @@ if __name__ == "__main__":
         start_pos = ""
         for i in range(len(kif['moves'])):
         # for i in range(10):
-            n = 0
+        # остается вопрос по мультимодальности, но вроде такое не встречается
+            print("предсказание :")
             needed_n = 10
+            mov_dict = {}
             sample_bst_mov = []
             sample_mov_cp = []
             mov_cp_std = 0
-            while n <= needed_n:
+            temp_key = ''
+            temp_max_len = 0
+            while len(sample_mov_cp) <= needed_n:
                 # найти cp за лучший рекомендуемый следующий ход
                 temp_because_yaneoura_besit = eng.cp_of_next_move(start_pos, depth=17)
                 if temp_because_yaneoura_besit[1] == -111111111:
@@ -43,24 +47,43 @@ if __name__ == "__main__":
                     bst_mov,mov_cp = temp_because_yaneoura_besit
                 sample_bst_mov.append(bst_mov)
                 sample_mov_cp.append(mov_cp)
-                n += 1
-                if n == 10:
-                    mov_cp_std = np.array(sample_mov_cp).std()
-                if n == needed_n:
-                    temp_np_array = np.array(sample_mov_cp)
-                    needed_n = math.ceil(((z_85*mov_cp_std)/e)**2)
-                    print('изменили needed_n',z_85,mov_cp_std,e)
-                    mov_cp_std = temp_np_array.std()
-            mov_cp = np.array(sample_mov_cp).mean()
-            print(sample_mov_cp)
-            print(len(set(sample_bst_mov)),'разных ходов')
+                if not (bst_mov in mov_dict.keys()):
+                    mov_dict[bst_mov] = []
+                mov_dict[bst_mov].append(mov_cp)
+                if len(sample_mov_cp) == needed_n:
+                    temp_key = ''
+                    temp_max_len = 0
+                    for k,v in mov_dict.items():
+                        if len(v) > temp_max_len:
+                            temp_max_len = len(v)
+                            temp_key = k
+                    mov_cp_std = np.array(mov_dict[temp_key]).std()
+                    needed_n = math.ceil((((z_85*mov_cp_std)/e)**2) * (len(sample_mov_cp)/temp_max_len))
+                    print('изменили needed_n',"std",mov_cp_std,"new n:",needed_n, 'итерация №',len(sample_mov_cp))
+            mov_cp = round(np.array(mov_dict[temp_key]).mean())
+            bst_mov = temp_key
+            print(mov_dict)
+            print(len(mov_dict),'разных ходов.',"Выбрали pv: ",bst_mov)
             print("mov_cp",mov_cp)
-            print("needed_n",needed_n)
-            # bst_mov = найти ближайший mov_cp из sample_mov_cp и взять по индексу bst_mov ### а верно ли это вообще ?
-            # отсортировать копию и бинарным поиском...
+            print("needed_n mov_cp",needed_n)
 
-            # # найти cp за текущий ход
-            # cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=17)
+            print("оценка :")
+            needed_n = 10
+            sample_cur_res = []
+            cur_res_std = 0
+            while len(sample_cur_res) <= needed_n:
+                # найти cp за текущий ход
+                cur_res = eng.cp_of_current_move(start_pos, kif['moves'][i], depth=17)
+                sample_cur_res.append(cur_res)
+                if len(sample_cur_res) == needed_n:
+                    cur_res_std = np.array(sample_cur_res).std()
+                    needed_n = math.ceil(((z_85*cur_res_std)/e)**2)
+                    print('изменили needed_n','std = ',cur_res_std,"new n:",needed_n, 'итерация №',len(sample_cur_res))
+            cur_res = round(np.array(sample_cur_res).mean())
+            # print(sample_cur_res)
+            print("cur_res",cur_res)
+            print("needed_n cur_res",needed_n)
+            print()
 
             # # записать в бд
             # # провести больше запусков, чтобы получить число поточнее..................................................

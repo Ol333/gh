@@ -43,8 +43,11 @@ def kifu_list():
     mas = []
     cur.execute("SELECT id,kifu FROM Kifu")
     temp = ''
+    wrong_kifu = [633,638,1120,4497,4760,6552,7500,9201,9883,9884,9886,
+    11173,12535,12961,13204,13705,16835,18186,25261,26205,26213,25261,
+    26205,26213,29813,29814,29817,40767,40778,43680,55099]
     for a in cur.fetchall():
-        if a[1] == temp or a[1] == '':
+        if a[1] == temp or a[1] == '' or a[0] in wrong_kifu:
             mas.append(a[0])
             kifu_del(a[0])
             p_id_mas = participation_playerbykifu(a[0])

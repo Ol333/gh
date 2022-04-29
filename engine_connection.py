@@ -1,7 +1,14 @@
+import math
 import time
 import subprocess
 
+import numpy as np
+
 class Connector:
+    local_max_cp = 0
+    last_cp = 0
+    last_last_cp = 0
+
     def send_command(self, process, command, expectation):
         process.stdin.write((command+'\r\n').encode())
         process.stdin.flush()
@@ -13,6 +20,7 @@ class Connector:
 
     def send_command_without_output(self, process, command):
         process.stdin.write((command+'\r\n').encode())
+        # print(command)
         process.stdin.flush()
     
     def send_command_bestmove(self, process, command):
@@ -25,26 +33,42 @@ class Connector:
             else:
                 res += line_usi
         return res
-    
+
     def get_max_bestmove(self,process):
         out_variants = {}
+        out_variants_locm = {}
         while line_end := process.stdout.readline().decode('utf8'):
             if line_end.find('bestmove') > -1:
                 temp_mas = line_end.replace('\r\n','').split(' ')
                 if temp_mas[1] == 'resign':
-                    return -4000
+                    return (-10000,-40000,-self.local_max_cp)
                 else:
-                    return out_variants[temp_mas[1]]
+                    return (int(min(abs(out_variants[temp_mas[1]]),10000)*np.sign(out_variants[temp_mas[1]])),out_variants[temp_mas[1]],out_variants_locm[temp_mas[1]])
             else:
                 temp = line_end.split(' ')
                 if 'cp' in temp:
                     temp_cp = int(temp[temp.index('cp') + 1])
                     temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
                     out_variants[temp_pv] = temp_cp
+                    out_variants_locm[temp_pv] = temp_cp
+                    self.last_last_cp = self.last_cp
+                    self.last_cp = temp_cp
+                    if self.local_max_cp < abs(temp_cp):
+                        self.local_max_cp = abs(temp_cp)
+                elif 'mate' in temp:
+                    steps_to_mate = int(temp[temp.index('mate') + 1].replace('\r\n',''))                  
+                    temp_cp = 40000
+                    temp_cp_locm = int(self.local_max_cp + 2*abs(self.last_last_cp - self.last_cp)/(abs(steps_to_mate)+1))
+                    if steps_to_mate < 0:
+                        temp_cp *= -1
+                        temp_cp_locm *= -1
+                    temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
+                    out_variants[temp_pv] = temp_cp
+                    out_variants_locm[temp_pv] = temp_cp_locm
         print("вообще-то сюда не должно приходить...")
         return 0
 
-    def get_best_move(self,process):
+    def get_best_move(self,process): # добавить обработку мата и проч из функции сверху :)
         out_variants = {}
         while line_end := process.stdout.readline().decode('utf8'):
             if line_end.find('bestmove') > -1:
@@ -110,7 +134,7 @@ class Engine:
         return out
 
     def cp_of_current_move(self,start_pos,move,depth):
-        print(start_pos.count(' '))
+        # print(start_pos.count(' '))
         position_str = 'position startpos moves ' + start_pos + '\r\n'
         self.con.send_command_without_output(self.process,position_str)
         # go_str = "go infinite searchmoves " + move + '\r\n'
@@ -120,10 +144,10 @@ class Engine:
         # stop_str = 'stop\r\n'
         # self.con.send_command_without_output(self.process,stop_str)
         # # выбираем наибольшее (можно попробовать среднее)
-        return self.con.get_max_bestmove(self.process)        
+        return self.con.get_max_bestmove(self.process)
     
     def cp_of_next_move(self,start_pos,depth):
-        print(start_pos.count(' '))
+        # print(start_pos.count(' '))
         position_str = 'position startpos moves ' + start_pos + '\r\n'
         self.con.send_command_without_output(self.process,position_str)
         # go_str = 'go infinite\r\n'

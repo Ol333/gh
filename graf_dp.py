@@ -7,15 +7,15 @@ import math
 #     all_moves_real = pd.DataFrame()
 #     all_moves_pv = pd.DataFrame()
 #     fig, ax = plt.subplots()
-#     ax.set_title("Оценка ходов 666 партии движком", fontsize=16)
+#     ax.set_title("Оценка ходов 90 партии движком", fontsize=16)
 #     ax.set_xlabel("Номер хода", fontsize=14)
 #     ax.set_ylabel("cp", fontsize=14)
 #     ax.minorticks_on()
 #     ax.grid(which="major",linewidth=1.2)
 #     ax.grid(which="minor",linestyle = ':')
 
-#     for i in range(1,20):
-#         f_name = "666/666_{}.txt".format(i)
+#     for i in range(20):
+#         f_name = "93/93_{}.txt".format(i)
 #         dot_mas_real = [[],[]]
 #         dot_mas_pv = [[],[]]
 
@@ -41,29 +41,37 @@ import math
 #         all_moves_real[i] = dot_mas_real[1]
 #         all_moves_pv[i] = dot_mas_pv[1]
 #     plt.show()
-#     all_moves_real["std"] = list(np.array(all_moves_real.iloc[i]).std() for i in range(76))
-#     all_moves_pv["std"] = list(np.array(all_moves_pv.iloc[i]).std() for i in range(76))
+#     all_moves_real["std"] = list(np.array(all_moves_real.iloc[i]).std() for i in range(len(all_moves_real)))
+#     all_moves_pv["std"] = list(np.array(all_moves_pv.iloc[i]).std() for i in range(len(all_moves_pv)))
 #     print("максимальное отклонение по реальным оценкам",max(all_moves_real["std"]))
 #     print("максимальное отклонение по предсказаниям",max(all_moves_pv["std"]))
     
-#     all_moves_real["относительная погрешность"] = [0] * 76
-#     all_moves_pv["относительная погрешность"] = [0] * 76
-#     for i in range(76):
+#     all_moves_real["относительная погрешность"] = [0] * len(all_moves_real)
+#     all_moves_pv["относительная погрешность"] = [0] * len(all_moves_pv)
+#     for i in range(len(all_moves_real)):
 #         move = np.array(all_moves_real.iloc[i])
 #         temp_mean = np.mean(move)
 #         del_2_rcp = sum(list(map(lambda x:(x-temp_mean)**2,move)))
-#         del_random = 2*math.sqrt(del_2_rcp/(19*18))
-#         all_moves_real.loc[i,"относительная погрешность"] = 100*del_random/abs(temp_mean)
+#         del_random = 2*math.sqrt(del_2_rcp/(19*20))
+#         if temp_mean != 0:
+#             all_moves_real.loc[i,"относительная погрешность"] = 100*del_random/abs(temp_mean)
         
 #         move = np.array(all_moves_pv.iloc[i])
 #         temp_mean = np.mean(move)
 #         del_2_rcp = sum(list(map(lambda x:(x-temp_mean)**2,move)))
-#         del_random = 2*math.sqrt(del_2_rcp/(19*18))
+#         del_random = 2*math.sqrt(del_2_rcp/(19*20))
 #         if temp_mean != 0:
 #             all_moves_pv.loc[i,"относительная погрешность"] = 100*del_random/abs(temp_mean)
 
-#     print("максимальная относительная погрешность по реальным оценкам",max(all_moves_real["относительная погрешность"]))
-#     print("максимальная относительная погрешность по предсказаниям",max(all_moves_pv["относительная погрешность"]))
+#     print("максимальная относительная погрешность по реальным оценкам",max(all_moves_real["относительная погрешность"]),
+#             'mean:',all_moves_real["относительная погрешность"].mean(),
+#             'median',all_moves_real["относительная погрешность"].median())
+#     for op in all_moves_real["относительная погрешность"]:
+#         print(op)
+#         # посчитать моду
+#     print("максимальная относительная погрешность по предсказаниям",max(all_moves_pv["относительная погрешность"]), 'mean:',all_moves_pv["относительная погрешность"].mean(),'median',all_moves_pv["относительная погрешность"].median())
+#     for op in all_moves_pv["относительная погрешность"]:
+#         print(op)
         
 
 if __name__ == '__main__':

@@ -167,7 +167,7 @@ if __name__ == '__main__':
     print('мин, ср и макс отклонения',min(std_rcp_mas),np.mean(std_rcp_mas),max(std_rcp_mas))
     for i in range(3):
         temp = graf_for_three[hws[i]]['delta']
-        print('мин, ср и макс относит погрешн по компам',str(hws[i]),min(temp),np.mean(temp),max(temp))
+        print('мин, ср, макс и медиана относит погрешн по компам',str(hws[i]),min(temp),np.mean(temp),max(temp),np.median(temp))
         # print(list(map(lambda x:round(x),temp)))
     # print(list(map(lambda x:round(x),gdel_absol_mas)))
     # print(list(map(lambda x:round(x),del_absol_mas)))

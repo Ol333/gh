@@ -11,6 +11,10 @@ import kifu_translation
 class MvScene(QGraphicsScene, QObject):
     worker = None
     selected_figure = None
+    komodai_dict_0 = {'歩':[0, 460, 400], '桂':[0,510,400], '香':[0,460,350], '銀':[0,510,350], '金':[0,460,300], '角':[0,510,300],  '飛':[0,460,250]}
+    komodai_dict_1 = {'歩':[0,-50,0], '桂':[0,-100,0], '香':[0,-50,50], '銀':[0,-100,50], '金':[0,-50,100], '角':[0,-100,100],  '飛':[0,-50,150]}
+    figures_list_jp = ['歩', '王','玉', '飛', '角', '金', '銀', '桂', '香']
+    figures_list_en = ['p', 'k', 'K', 'r', 'b', 'g', 's', 'n', 'l']
 
     def __init__(self, com):
         super().__init__()
@@ -25,6 +29,12 @@ class MvScene(QGraphicsScene, QObject):
             t.setPos(420-i*50,450)
             t = self.addText('abcdefghi'[i])
             t.setPos(450,i*50+20)
+        for k in self.komodai_dict_0:
+            self.komodai_dict_0[k][0] = self.addText(str(0))
+            self.komodai_dict_0[k][0].setPos(self.komodai_dict_0[k][1]-8, self.komodai_dict_0[k][2]-3)
+        for k in self.komodai_dict_1:
+            self.komodai_dict_1[k][0] = self.addText(str(0))
+            self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)
         self.comm.updMoves.emit('7g7f') #вызов функции из главного окна
             
     def mousePressEvent(self, mouseEvent):
@@ -66,16 +76,32 @@ class MvScene(QGraphicsScene, QObject):
         fu.setData(1, side)
         fu.setData(2, name)
         fu.setData(3, False)
+        fu.setData(4, False) # переворот
 
     def moveFigure(self, x, y):
+        figure = self.selected_figure[0].data(2)
+        figure = self.figures_list_en[self.figures_list_jp.index(figure)]
+        if self.selected_figure[0].data(1) == 0:
+            figure = figure.upper()
+        figure_side = self.selected_figure[0].data(1)
         fu = self.selected_figure[0]
         pol = self.selected_figure[1]
-        newx =(x // 50)*50
-        newy =(y // 50)*50
-        lasti = 9 - self.selected_figure[2]
-        lastj = self.selected_figure[3]
+        old_pos = self.selected_figure[2:]
+        newx = (x // 50)*50
+        newy = (y // 50)*50
         self.selectFigureDop(fu, pol, newx, newy)
-        usi_move = str(lasti)+'abcdefghi'[lastj]+str(9-int(x // 50))+'abcdefghi'[int(y // 50)]
+        if 0 <= old_pos[0] < 9 and 0 <= old_pos[1] < 9:
+            self.posSend(str(9-old_pos[0])+'abcdefghi'[old_pos[1]], int(x // 50), int(y // 50))
+        else:
+            self.posSend(figure+'*', int(x // 50), int(y // 50))
+            if figure_side == 0:
+                labelWidget = self.komodai_dict_0[self.figures_list_jp[self.figures_list_en.index(figure.lower())]][0]
+            else:
+                labelWidget = self.komodai_dict_1[self.figures_list_jp[self.figures_list_en.index(figure.lower())]][0]
+            labelWidget.setPlainText(str(int(labelWidget.toPlainText())-1))
+
+    def posSend(self, old_or_figure, new_i, new_j):
+        usi_move = old_or_figure+str(9-new_i)+'abcdefghi'[new_j]
         self.transl.addMove(usi_move)
         self.comm.updMoves.emit(usi_move)
 
@@ -84,10 +110,32 @@ class MvScene(QGraphicsScene, QObject):
         pol = self.itemAt(x, y, QTransform())
         fu.setVisible(True)
         if pol.data(0) == "Figure":
-            if self.selected_figure != None:
-                self.selectFigureDop(self.selected_figure[0], self.selected_figure[1])
-            self.selectFigureDop(fu, pol)            
-            self.selected_figure = [fu, pol, int(x // 50), int(y // 50)]
+            if self.selected_figure == None: # выбор фигуры
+                self.selectFigureDop(fu, pol)            
+                self.selected_figure = [fu, pol, int(x // 50), int(y // 50)]
+            else:
+                if self.selected_figure[0] == fu:
+                    self.selectFigureDop(self.selected_figure[0], self.selected_figure[1]) # выбор другой фигуры
+                else:
+                    if self.selected_figure[0].data(1) != fu.data(1): # захват
+                        self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50))
+                        self.selectFigureDop(self.selected_figure[0], self.selected_figure[1], int(x // 50)*50, int(y // 50)*50)
+                        if fu.data(1) == 0:
+                            fu.setData(1,1)
+                            new_x, new_y = self.komodai_dict_1[fu.data(2)][1:]
+                            self.komodai_dict_1[fu.data(2)][0].setPlainText(str(int(self.komodai_dict_1[fu.data(2)][0].toPlainText())+1))
+                            self.selectFigureDop(fu, pol, new_x, new_y)
+                            self.selectFigureDop(fu, pol)
+                        else:
+                            fu.setData(1,0)
+                            new_x, new_y = self.komodai_dict_0[fu.data(2)][1:]
+                            self.komodai_dict_0[fu.data(2)][0].setPlainText(str(int(self.komodai_dict_0[fu.data(2)][0].toPlainText())+1))
+                            self.selectFigureDop(fu, pol, new_x, new_y)
+                            self.selectFigureDop(fu, pol)
+                    else:
+                        self.selectFigureDop(self.selected_figure[0], self.selected_figure[1]) # сброс выделения
+                        self.selectFigureDop(fu, pol)            
+                        self.selected_figure = [fu, pol, int(x // 50), int(y // 50)]
     
     def selectFigureDop(self, fu, pol, dopx=0, dopy=0):
         new_value = 1.0
@@ -107,4 +155,5 @@ class MvScene(QGraphicsScene, QObject):
         if dopx != 0:
             pol.setPos(5.0+dopx, 5.0+dopy)
             fu.setPos(8.0+dopx, 5.0+dopy)
+        
 

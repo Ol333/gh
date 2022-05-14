@@ -33,7 +33,7 @@ class Example(Ui_MainWindow, QObject, object):
     def aboutProgram(self):
         mb = QMessageBox()
         mb.setWindowTitle("О программе")
-        mb.setText("Это программа.\nAuthor is O.P.Bobrovskaya.")
+        mb.setText("Это программа.\nАвтор - Бобровская О.П.")
         mb.exec()
 
     # def open_diagram(self):
@@ -56,7 +56,8 @@ class Example(Ui_MainWindow, QObject, object):
         self.listWidget.addItem(s)
 
     def changeMove(self):
-        print(self.listWidget.selectedItems)
+        for i in self.listWidget.selectedItems():
+            print(i.text())
 
     def showDialog_connectEngine(self):
         qwe1 = QWidget()

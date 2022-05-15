@@ -1,3 +1,4 @@
+from tracemalloc import start
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QCheckBox,
 QGridLayout, QInputDialog, QApplication, QMessageBox, QTextEdit, QRadioButton,
 QGroupBox, QScrollArea, QLabel, QHBoxLayout, QMainWindow, QProgressBar,
@@ -16,27 +17,32 @@ class MvScene(QGraphicsScene, QObject):
     figures_list_jp = ['歩', '王','玉', '飛', '角', '金', '銀', '桂', '香']
     figures_list_en = ['p', 'k', 'K', 'r', 'b', 'g', 's', 'n', 'l']
 
-    def __init__(self, com):
+    def __init__(self, com, startpos=['7g7f']):
         super().__init__()
-        self.createDesk()
-        self.transl = kifu_translation.Kifu_translator()
         self.comm = com
-        figures = self.transl.posToDesk('7g7f')
-        for f in figures:
-            self.addFigure(f[0],f[1],f[2],f[3])
-        for i in range(9):
-            t = self.addText(str(i+1))
-            t.setPos(420-i*50,450)
-            t = self.addText('abcdefghi'[i])
-            t.setPos(450,i*50+20)
-        for k in self.komodai_dict_0:
-            self.komodai_dict_0[k][0] = self.addText(str(0))
-            self.komodai_dict_0[k][0].setPos(self.komodai_dict_0[k][1]-8, self.komodai_dict_0[k][2]-3)
-        for k in self.komodai_dict_1:
-            self.komodai_dict_1[k][0] = self.addText(str(0))
-            self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)
-        self.comm.updMoves.emit('7g7f') #вызов функции из главного окна
-            
+        self.drawAll(startpos)
+        
+    def drawAll(self, startpos):
+        self.clear()
+        self.createDesk()
+        self.transl = kifu_translation.Kifu_translator()        
+        for move in startpos:
+            figures = self.transl.posToDesk(move)
+            for f in figures:
+                self.addFigure(f[0],f[1],f[2],f[3])
+            for i in range(9):
+                t = self.addText(str(i+1))
+                t.setPos(420-i*50,450)
+                t = self.addText('abcdefghi'[i])
+                t.setPos(450,i*50+20)
+            for k in self.komodai_dict_0:
+                self.komodai_dict_0[k][0] = self.addText(str(0))
+                self.komodai_dict_0[k][0].setPos(self.komodai_dict_0[k][1]-8, self.komodai_dict_0[k][2]-3)
+            for k in self.komodai_dict_1:
+                self.komodai_dict_1[k][0] = self.addText(str(0))
+                self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)
+            self.comm.updMoves.emit(move) #вызов функции из главного окна
+
     def mousePressEvent(self, mouseEvent):
         if (mouseEvent.button() == Qt.RightButton):
             self.placeBox(mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
@@ -49,7 +55,8 @@ class MvScene(QGraphicsScene, QObject):
                     self.moveFigure(mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
 
     def createDesk(self):
-        brush = QBrush(QColor(255, 255, 255), QPixmap("graphics/desk.jpg"))
+        # brush = QBrush(QColor(235, 207, 153), QPixmap("graphics/desk.jpg"))
+        brush = QBrush(QColor(235, 207, 153))
         for i in range(9):
             for j in range(9):
                 item = self.addRect(i*50.0,j*50.0,50.0,50.0, QPen(QColor(255, 255, 255)), brush)

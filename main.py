@@ -56,8 +56,12 @@ class Example(Ui_MainWindow, QObject, object):
         self.listWidget.addItem(s)
 
     def changeMove(self):
-        for i in self.listWidget.selectedItems():
-            print(i.text())
+        # print(self.listWidget.currentItem().text())
+        startpos = []
+        for row in range(self.listWidget.currentRow()):
+            startpos.append(self.listWidget.item(row).text())
+        self.listWidget.clear()
+        self.graphicsView.scene().drawAll(startpos)
 
     def showDialog_connectEngine(self):
         qwe1 = QWidget()

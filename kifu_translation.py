@@ -33,3 +33,4 @@ class Kifu_translator:
 
     def addMove(self, s):
         self.board.push_usi(s)
+        print(self.board.kif_str())

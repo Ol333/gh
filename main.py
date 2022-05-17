@@ -53,14 +53,14 @@ class Example(Ui_MainWindow, QObject, object):
         print('save')
 
     def updateMoves(self, s):
-        self.listWidget.addItem(s)
+        self.listWidget.addItem(s)        
+        # self.listWidget.setCurrentRow(print(self.listWidget.count())-1)
 
     def changeMove(self):
-        # print(self.listWidget.currentItem().text())
         startpos = []
-        for row in range(self.listWidget.currentRow()):
+        for row in range(self.listWidget.currentRow()+1):
             startpos.append(self.listWidget.item(row).text())
-        self.listWidget.clear()
+        self.listWidget.clear() #?
         self.graphicsView.scene().drawAll(startpos)
 
     def showDialog_connectEngine(self):

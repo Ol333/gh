@@ -1,3 +1,5 @@
+import os
+
 from tracemalloc import start
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QCheckBox,
 QGridLayout, QInputDialog, QApplication, QMessageBox, QTextEdit, QRadioButton,
@@ -16,32 +18,39 @@ class MvScene(QGraphicsScene, QObject):
     komodai_dict_1 = {'歩':[0,-50,0], '桂':[0,-100,0], '香':[0,-50,50], '銀':[0,-100,50], '金':[0,-50,100], '角':[0,-100,100],  '飛':[0,-50,150]}
     figures_list_jp = ['歩', '王','玉', '飛', '角', '金', '銀', '桂', '香']
     figures_list_en = ['p', 'k', 'K', 'r', 'b', 'g', 's', 'n', 'l']
-
+    nari_figures = {'歩':'と', '桂':'圭', '銀':'全','角':'馬', '飛':'龍', '香':'杏'}
+    brush = None
+    
     def __init__(self, com, startpos=['7g7f']):
         super().__init__()
+        if os.path.exists("graphics/desk.jpg"):
+            self.brush = QBrush(QPixmap("graphics/desk.jpg"))
+        else:
+            self.brush = QBrush(QColor(235, 207, 153))
         self.comm = com
         self.drawAll(startpos)
         
     def drawAll(self, startpos):
         self.clear()
         self.createDesk()
-        self.transl = kifu_translation.Kifu_translator()        
+        self.transl = kifu_translation.Kifu_translator()
+        res_pos = []
         for move in startpos:
-            figures = self.transl.posToDesk(move)
-            for f in figures:
-                self.addFigure(f[0],f[1],f[2],f[3])
-            for i in range(9):
-                t = self.addText(str(i+1))
-                t.setPos(420-i*50,450)
-                t = self.addText('abcdefghi'[i])
-                t.setPos(450,i*50+20)
-            for k in self.komodai_dict_0:
-                self.komodai_dict_0[k][0] = self.addText(str(0))
-                self.komodai_dict_0[k][0].setPos(self.komodai_dict_0[k][1]-8, self.komodai_dict_0[k][2]-3)
-            for k in self.komodai_dict_1:
-                self.komodai_dict_1[k][0] = self.addText(str(0))
-                self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)
+            res_pos = self.transl.posToDesk(move)
             self.comm.updMoves.emit(move) #вызов функции из главного окна
+        for f in res_pos:
+            self.addFigure(f[0],f[1],f[2],f[3])
+        for i in range(9):
+            t = self.addText(str(i+1))
+            t.setPos(420-i*50,450)
+            t = self.addText('abcdefghi'[i])
+            t.setPos(450,i*50+20)
+        for k in self.komodai_dict_0:
+            self.komodai_dict_0[k][0] = self.addText(str(0))
+            self.komodai_dict_0[k][0].setPos(self.komodai_dict_0[k][1]-8, self.komodai_dict_0[k][2]-3)
+        for k in self.komodai_dict_1:
+            self.komodai_dict_1[k][0] = self.addText(str(0))
+            self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)
 
     def mousePressEvent(self, mouseEvent):
         if (mouseEvent.button() == Qt.RightButton):
@@ -55,15 +64,13 @@ class MvScene(QGraphicsScene, QObject):
                     self.moveFigure(mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
 
     def createDesk(self):
-        # brush = QBrush(QColor(235, 207, 153), QPixmap("graphics/desk.jpg"))
-        brush = QBrush(QColor(235, 207, 153))
         for i in range(9):
             for j in range(9):
-                item = self.addRect(i*50.0,j*50.0,50.0,50.0, QPen(QColor(255, 255, 255)), brush)
+                item = self.addRect(i*50.0,j*50.0,50.0,50.0, QPen(QColor(255, 255, 255)), self.brush)
                 item.setData(0, "Desk")
-        left_komodai = self.addRect(-105.0,0.0,100.0,200.0, QPen(QColor(255, 255, 255)), brush)
+        left_komodai = self.addRect(-105.0,0.0,100.0,200.0, QPen(QColor(255, 255, 255)), self.brush)
         left_komodai.setData(0, "Left komodai")
-        right_komodai = self.addRect(455.0,250.0,100.0,200.0, QPen(QColor(255, 255, 255)), brush)
+        right_komodai = self.addRect(455.0,250.0,100.0,200.0, QPen(QColor(255, 255, 255)), self.brush)
         right_komodai.setData(0, "Right komodai")
     
     def addFigure(self, side, i, j, name):
@@ -107,8 +114,8 @@ class MvScene(QGraphicsScene, QObject):
                 labelWidget = self.komodai_dict_1[self.figures_list_jp[self.figures_list_en.index(figure.lower())]][0]
             labelWidget.setPlainText(str(int(labelWidget.toPlainText())-1))
 
-    def posSend(self, old_or_figure, new_i, new_j):
-        usi_move = old_or_figure+str(9-new_i)+'abcdefghi'[new_j]
+    def posSend(self, old_or_figure, new_i, new_j, nari=''):
+        usi_move = old_or_figure+str(9-new_i)+'abcdefghi'[new_j] + nari
         self.transl.addMove(usi_move)
         self.comm.updMoves.emit(usi_move)
 
@@ -125,7 +132,10 @@ class MvScene(QGraphicsScene, QObject):
                     self.selectFigureDop(self.selected_figure[0], self.selected_figure[1]) # выбор другой фигуры
                 else:
                     if self.selected_figure[0].data(1) != fu.data(1): # захват
-                        self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50))
+                        print(fu.data(1), int(y//50))
+                        if (fu.data(1) == 1 and int(y // 50) < 3) or (fu.data(1) == 0 and int(y // 50) > 5): # будем ли переворачивать фигуру?
+                            fu.setData(4, self.nari())
+                        self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50),'+'*fu.data(4))
                         self.selectFigureDop(self.selected_figure[0], self.selected_figure[1], int(x // 50)*50, int(y // 50)*50)
                         if fu.data(1) == 0:
                             fu.setData(1,1)
@@ -163,4 +173,12 @@ class MvScene(QGraphicsScene, QObject):
             pol.setPos(5.0+dopx, 5.0+dopy)
             fu.setPos(8.0+dopx, 5.0+dopy)
         
-
+    def nari(self):
+        fu = self.selected_figure[0]
+        d = QMessageBox.question(QWidget(), "Переворот", "Перевернуть фигуру?",
+                                QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
+        if d == QMessageBox.Yes:
+            fu.setPlainText(self.nari_figures[fu.toPlainText()])
+            return True
+        if d == QMessageBox.No:
+            return False

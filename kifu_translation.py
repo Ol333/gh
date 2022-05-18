@@ -32,5 +32,9 @@ class Kifu_translator:
         return res
 
     def addMove(self, s):
+        print('move', s)
+        print('is legal move:',shogi.Move.from_usi(s) in self.board.legal_moves)
         self.board.push_usi(s)
-        print(self.board.kif_str())
+        # print(self.board.kif_str())
+        print('is stalemate:', self.board.is_stalemate())
+        print('is mate:', self.board.is_game_over())

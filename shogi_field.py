@@ -72,6 +72,10 @@ class MvScene(QGraphicsScene, QObject):
         left_komodai.setData(0, "Left komodai")
         right_komodai = self.addRect(455.0,250.0,100.0,200.0, QPen(QColor(255, 255, 255)), self.brush)
         right_komodai.setData(0, "Right komodai")
+        fpn = self.addText('first player name')
+        fpn.setPos(-105.0,-25.0)
+        spn = self.addText('second player name')
+        spn.setPos(455.0,460.0)
     
     def addFigure(self, side, i, j, name):
         polygon = QPolygonF()
@@ -104,8 +108,13 @@ class MvScene(QGraphicsScene, QObject):
         newx = (x // 50)*50
         newy = (y // 50)*50
         self.selectFigureDop(fu, pol, newx, newy)
+        fl_of_instant_nari = False
         if 0 <= old_pos[0] < 9 and 0 <= old_pos[1] < 9:
-            self.posSend(str(9-old_pos[0])+'abcdefghi'[old_pos[1]], int(x // 50), int(y // 50))
+            if (not fu.data(4) 
+                and ((fu.data(1) == 0 and (int(y // 50) < 3 or old_pos[1] < 3)) 
+                    or (fu.data(1) == 1 and (int(y // 50) > 5 or old_pos[1] > 5)))): # переворот
+                fl_of_instant_nari = self.nari(fu)
+            self.posSend(str(9-old_pos[0])+'abcdefghi'[old_pos[1]], int(x // 50), int(y // 50),'+'*fl_of_instant_nari)
         else:
             self.posSend(figure+'*', int(x // 50), int(y // 50))
             if figure_side == 0:
@@ -132,10 +141,14 @@ class MvScene(QGraphicsScene, QObject):
                     self.selectFigureDop(self.selected_figure[0], self.selected_figure[1]) # выбор другой фигуры
                 else:
                     if self.selected_figure[0].data(1) != fu.data(1): # захват
-                        print(fu.data(1), int(y//50))
-                        if (fu.data(1) == 1 and int(y // 50) < 3) or (fu.data(1) == 0 and int(y // 50) > 5): # будем ли переворачивать фигуру?
-                            fu.setData(4, self.nari())
-                        self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50),'+'*fu.data(4))
+                        fl_of_instant_nari = False
+                        if (not self.selected_figure[0].data(4) 
+                            and ((fu.data(1) == 1 and int(y // 50) < 3) 
+                                or (fu.data(1) == 0 and int(y // 50) > 5) 
+                                or (self.selected_figure[0].data(1) == 1 and self.selected_figure[3] > 5) 
+                                or (self.selected_figure[0].data(1) == 0 and self.selected_figure[3] < 3))): # переворот
+                            fl_of_instant_nari = self.nari(self.selected_figure[0])
+                        self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50),'+' * fl_of_instant_nari)
                         self.selectFigureDop(self.selected_figure[0], self.selected_figure[1], int(x // 50)*50, int(y // 50)*50)
                         if fu.data(1) == 0:
                             fu.setData(1,1)
@@ -173,12 +186,13 @@ class MvScene(QGraphicsScene, QObject):
             pol.setPos(5.0+dopx, 5.0+dopy)
             fu.setPos(8.0+dopx, 5.0+dopy)
         
-    def nari(self):
-        fu = self.selected_figure[0]
+    def nari(self, fu):
         d = QMessageBox.question(QWidget(), "Переворот", "Перевернуть фигуру?",
                                 QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         if d == QMessageBox.Yes:
             fu.setPlainText(self.nari_figures[fu.toPlainText()])
+            fu.setData(4, True)
             return True
         if d == QMessageBox.No:
+            fu.setData(4, False)
             return False

@@ -23,6 +23,11 @@
       <height>41</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="text">
      <string>Сохранить запись игры в БД</string>
     </property>
@@ -31,9 +36,9 @@
     <property name="geometry">
      <rect>
       <x>710</x>
-      <y>10</y>
+      <y>40</y>
       <width>261</width>
-      <height>461</height>
+      <height>431</height>
      </rect>
     </property>
    </widget>
@@ -51,10 +56,47 @@
     <property name="geometry">
      <rect>
       <x>980</x>
-      <y>120</y>
+      <y>60</y>
       <width>161</width>
-      <height>261</height>
+      <height>461</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>11</y>
+      <width>261</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Список ходов:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>980</x>
+      <y>16</y>
+      <width>161</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Результат анализа 
+хода:</string>
     </property>
    </widget>
   </widget>

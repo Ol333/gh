@@ -5,9 +5,12 @@ class Kifu_translator:
 
     def __init__(self):
         self.board = shogi.Board()
+        self.movesSequence = ''
 
     def posToDesk(self, s):
-        self.board.push(shogi.Move.from_usi(s))
+        if s != '':
+            self.board.push(shogi.Move.from_usi(s))
+            self.movesSequence += ' ' + s
         res = []
         desk = self.board.kif_str().split('\n')[3:12]
         for i in range(len(desk)):
@@ -38,3 +41,7 @@ class Kifu_translator:
         # print(self.board.kif_str())
         print('is stalemate:', self.board.is_stalemate())
         print('is mate:', self.board.is_game_over())
+
+    def getBoard(self):
+        # return self.board.sfen()
+        return self.movesSequence

@@ -21,7 +21,8 @@ class MvScene(QGraphicsScene, QObject):
     nari_figures = {'歩':'と', '桂':'圭', '銀':'全','角':'馬', '飛':'龍', '香':'杏'}
     brush = None
     
-    def __init__(self, com, startpos=['7g7f']):
+    # def __init__(self, com, startpos=['7g7f']):
+    def __init__(self, com, startpos=['']):
         super().__init__()
         if os.path.exists("graphics/desk.jpg"):
             self.brush = QBrush(QPixmap("graphics/desk.jpg"))
@@ -47,7 +48,7 @@ class MvScene(QGraphicsScene, QObject):
             t.setPos(450,i*50+20)
         for k in self.komodai_dict_0:
             self.komodai_dict_0[k][0] = self.addText(str(0))
-            self.komodai_dict_0[k][0].setPos(self.komodai_dict_0[k][1]-8, self.komodai_dict_0[k][2]-3)
+            self.komodai_dict_0[k][0].setPos(self.komodai_dict_0[k][1]+33, self.komodai_dict_0[k][2]-3)
         for k in self.komodai_dict_1:
             self.komodai_dict_1[k][0] = self.addText(str(0))
             self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)

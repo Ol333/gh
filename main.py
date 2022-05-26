@@ -1,9 +1,8 @@
 import sys
 import os
+import numpy as np
 import subprocess
 from datetime import datetime, timedelta
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import webbrowser
 
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QCheckBox,
@@ -17,18 +16,23 @@ from PyQt5.QtGui import (QStandardItemModel, QStandardItem)
 from main_ui import Ui_MainWindow
 import rab_with_db
 import shogi_field
+import engine_connection as ec
 
 class Example(Ui_MainWindow, QObject, object):
     def __init__(self, form1, com, app):
         super().__init__()
         self.form = form1
-        self.engAddr = os.getcwd()+'\YaneuraOu_NNUE-tournament-clang++-avx2.exe'
+        self.engAddr = os.getcwd()+'\YaneuraOu_NNUE-tournament-clang++-avx2.exe'  # ?
         self.app = app
         self.comm = com
         self.setupUi(form1)
         self.window_main = form1
         self.connect_slots()
         self.rwd = rab_with_db.DbConnection("shogi_db10000.db")
+        self.eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-avx2")
+        self.last_cp = 0
+        for i in range(30):
+            self.engineMove()
 
     def aboutProgram(self):
         mb = QMessageBox()
@@ -53,7 +57,7 @@ class Example(Ui_MainWindow, QObject, object):
         print('save')
 
     def updateMoves(self, s):
-        self.listWidget.addItem(s)        
+        self.listWidget.addItem(s)
         # self.listWidget.setCurrentRow(print(self.listWidget.count())-1)
 
     def changeMove(self):
@@ -62,6 +66,37 @@ class Example(Ui_MainWindow, QObject, object):
             startpos.append(self.listWidget.item(row).text())
         self.listWidget.clear() #?
         self.graphicsView.scene().drawAll(startpos)
+
+    def engineMove(self):
+        start_pos = self.graphicsView.scene().transl.getBoard()
+        bst_mov = ""
+        # найти cp за лучший рекомендуемый следующий ход
+        temp_because_yaneoura_besit = self.eng.cp_of_next_move(start_pos, depth=17)
+        if temp_because_yaneoura_besit[1] == -111111111:
+            bst_mov = temp_because_yaneoura_besit[0]
+            mov_cp, mov_cp_40000, mov_cp_localMax =self.eng.cp_of_current_move(start_pos, bst_mov, depth=17)
+        else:
+            bst_mov,mov_cp = temp_because_yaneoura_besit
+            mov_cp_40000 = mov_cp
+            mov_cp_localMax = mov_cp
+            mov_cp = int(min(abs(mov_cp),10000)*np.sign(mov_cp))
+        # self.eng.end()
+        self.updateMoves(bst_mov)
+        self.listWidget.setCurrentRow(self.listWidget.count()-1)
+        if (self.listWidget.count() - 1) % 2 == 0:
+            temp_sign = 1
+        else:
+            temp_sign = -1
+        print(temp_sign, end=' ')
+        if self.plainTextEdit.toPlainText() != '':
+            # разберись со знаками...
+            print(int(self.plainTextEdit.toPlainText().split()[-1]), mov_cp, self.last_cp, str(-temp_sign*(-self.last_cp - (np.sign(mov_cp)*temp_sign)*mov_cp)))
+            self.plainTextEdit.setPlainText("Изменение оценки позиции в результате хода = " + str(-temp_sign*(-self.last_cp - (np.sign(mov_cp)*temp_sign)*mov_cp)))
+        else:
+            self.plainTextEdit.setPlainText("Изменение оценки позиции в результате хода = " + str(mov_cp))
+            print('-', mov_cp ,self.last_cp, '-')
+        self.last_cp = mov_cp
+        
 
     def showDialog_connectEngine(self):
         qwe1 = QWidget()

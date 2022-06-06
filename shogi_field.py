@@ -7,7 +7,7 @@ QGroupBox, QScrollArea, QLabel, QHBoxLayout, QMainWindow, QProgressBar,
 QAction, QFileDialog, QDialog, QGraphicsScene, QGraphicsItem, QGraphicsSceneMouseEvent, QGraphicsItemGroup)
 from PyQt5.QtCore import (QRect, QCoreApplication, pyqtSignal, QObject, Qt,
 QTranslator, QLocale, QPointF)
-from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QColor, QPixmap, QPen, QBrush, QPolygonF, QFont, QTransform)
+from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QColor, QPixmap, QPen, QBrush, QPolygonF, QFont, QTransform, QImage)
 
 import kifu_translation
 
@@ -28,17 +28,24 @@ class MvScene(QGraphicsScene, QObject):
             self.brush = QBrush(QPixmap("graphics/desk.jpg"))
         else:
             self.brush = QBrush(QColor(235, 207, 153))
+        if os.path.exists("graphics/autoGame.jpg"):
+            self.brush_auto = QBrush()
+            self.brush_auto.setTextureImage(QImage("graphics/autoGame.jpg"))
+            self.brush_auto.setTransform(QTransform(1, 0, 0, 1, 10.0, 17.0))
+        else:
+            self.brush_auto = QBrush(QColor(235, 207, 153))
         self.comm = com
         self.drawAll(startpos)
         
-    def drawAll(self, startpos):
+    def drawAll(self, startpos, silence=False):
         self.clear()
         self.createDesk()
         self.transl = kifu_translation.Kifu_translator()
         res_pos = []
         for move in startpos:
             res_pos = self.transl.posToDesk(move)
-            self.comm.updMoves.emit(move) #вызов функции из главного окна
+            if not silence:
+                self.comm.updMoves.emit(move) #вызов функции из главного окна
         for f in res_pos:
             self.addFigure(f[0],f[1],f[2],f[3])
         for i in range(9):
@@ -55,7 +62,7 @@ class MvScene(QGraphicsScene, QObject):
 
     def mousePressEvent(self, mouseEvent):
         if (mouseEvent.button() == Qt.RightButton):
-            self.placeBox(mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
+            self.placeBox(mouseEvent.scenePos().x(), mouseEvent.scenePos().y()) # или удалить или добавить
         if (mouseEvent.button() == Qt.LeftButton):
             item = self.itemAt(mouseEvent.scenePos(), QTransform())
             if (item):
@@ -63,6 +70,8 @@ class MvScene(QGraphicsScene, QObject):
                     self.selectFigure(item, mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
                 if (item.data(0) == "Desk" and self.selected_figure != None):
                     self.moveFigure(mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
+                if (item.data(0) == "Auto Game"):
+                    self.comm.autoGame.emit()
 
     def createDesk(self):
         for i in range(9):
@@ -73,10 +82,13 @@ class MvScene(QGraphicsScene, QObject):
         left_komodai.setData(0, "Left komodai")
         right_komodai = self.addRect(455.0,250.0,100.0,200.0, QPen(QColor(255, 255, 255)), self.brush)
         right_komodai.setData(0, "Right komodai")
-        fpn = self.addText('first player name')
+        fpn = self.addText('second player name')
         fpn.setPos(-105.0,-25.0)
-        spn = self.addText('second player name')
+        spn = self.addText('first player name')
         spn.setPos(455.0,460.0)
+        autoGame = self.addRect(500.0,-20.0,49.0,37.0, QPen(QColor(255, 255, 255)), self.brush_auto)
+        autoGame.setToolTip('Ход движка')
+        autoGame.setData(0, "Auto Game")
     
     def addFigure(self, side, i, j, name):
         polygon = QPolygonF()

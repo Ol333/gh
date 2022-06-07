@@ -12,6 +12,7 @@ class Kifu_translator:
             self.board.push(shogi.Move.from_usi(s))
             self.movesSequence += ' ' + s
         res = []
+        res.append([])
         desk = self.board.kif_str().split('\n')[3:12]
         for i in range(len(desk)):
             desk[i] = desk[i][1:-2] 
@@ -20,18 +21,20 @@ class Kifu_translator:
             j = 0
             while k < len(desk[i]):
                 if desk[i][k] == 'v':
-                    res.append([1,j,i,desk[i][k+1]])
+                    res[0].append([1,j,i,desk[i][k+1]])
                     k += 2
                     j += 1
                 elif desk[i][k] == '・':
                     k += 1
                     j += 1
                 elif desk[i][k] in self.figures_list:
-                    res.append([0,j,i,desk[i][k]])
+                    res[0].append([0,j,i,desk[i][k]])
                     k += 1
                     j += 1
                 else:
                     k += 1
+        res.append(self.board.kif_str().split('\n')[0].split('：')[1].split('\u3000')[1:])
+        res.append(self.board.kif_str().split('\n')[-1].split('：')[1].split('\u3000')[1:])
         return res
 
     def addMove(self, s):

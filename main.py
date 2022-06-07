@@ -18,23 +18,25 @@ from main_ui import Ui_MainWindow
 import rab_with_db
 import shogi_field
 import engine_connection as ec
+import some_analisis_stuff as sas
 
 class Example(Ui_MainWindow, QObject, object):
     def __init__(self, form1, com, app):
         super().__init__()
         self.form = form1
-        self.engAddr = os.getcwd()+'\YaneuraOu_NNUE-tournament-clang++-avx2.exe'  # ?
         self.app = app
         self.comm = com
         self.setupUi(form1)
         self.window_main = form1
         self.connect_slots()
+        engNam = [f for f in os.listdir() if 'YaneuraOu' in f][0].split('.')[0]
+        self.engAddr = os.getcwd() + engNam  # ?
+        self.eng = ec.Engine(engNam)
         self.rwd = rab_with_db.DbConnection("shogi_db10000.db")
-        self.eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-avx2")
-        self.last_cp = 0
+        self.analisis = sas.SomeAnalisisStuff(self.eng)
+        # self.eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-avx2")
         self.tableWidget.setColumnCount(2)
-        self.tableWidget.setHorizontalHeaderLabels(['Ход', 'Выигрыш'])
-        self.tableWidget.setVerticalHeaderItem(0, QTableWidgetItem('0'))
+        self.newGame()
 
     def aboutProgram(self):
         mb = QMessageBox()
@@ -54,39 +56,27 @@ class Example(Ui_MainWindow, QObject, object):
         self.comm.updMoves.connect(self.updateMoves)
         self.comm.autoGame.connect(self.engineMove)
         self.graphicsView.setScene(shogi_field.MvScene(self.comm))
-        # self.listWidget.currentItemChanged.connect(self.changeMove) # list -> graph
         self.tableWidget.currentItemChanged.connect(self.changeMove) # list -> graph
         self.actionNewGame.triggered.connect(self.newGame)
 
     def newGame(self):
-        # self.listWidget.clear()
+        self.last_cp = 0
         self.tableWidget.clear()
+        self.tableWidget.setHorizontalHeaderLabels(['Ход', 'Выигрыш'])
+        self.tableWidget.setVerticalHeaderItem(0, QTableWidgetItem('0'))        
+        self.tableWidget.setRowCount(0)
         self.graphicsView.scene().drawAll([''])
             
     def saveKifuToDB(self):
         print('save')
 
     def updateMoves(self, s):
-        # self.listWidget.addItem(s)
         self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
         self.tableWidget.setItem(self.tableWidget.rowCount()-1, 0, QTableWidgetItem(s))
         self.tableWidget.setVerticalHeaderItem(self.tableWidget.rowCount()-1, QTableWidgetItem(str(self.tableWidget.rowCount()-1)))
 
-        self.tableWidget.setCurrentCell(self.tableWidget.rowCount()-1, 0) # вызывает следущую ошибку
-        ###
-        # Traceback (most recent call last):
-        #   File "gh\shogi_field.py", line 70, in mousePressEvent
-        #     self.selectFigure(item, mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
-        #   File "gh\shogi_field.py", line 165, in selectFigure
-        #     self.selectFigureDop(self.selected_figure[0], self.selected_figure[1], int(x // 50)*50, int(y // 50)*50)
-        #   File "gh\shogi_field.py", line 185, in selectFigureDop
-        #     if not fu.data(3):
-        # RuntimeError: wrapped C/C++ object of type QGraphicsTextItem has been deleted
-        ###
+        # self.tableWidget.setCurrentCell(self.tableWidget.rowCount()-1, 0) # вызывает ошибку
         
-        # if self.radioButton_2.isChecked() and self.listWidget.count() % 2 == 0:
-        #     print(self.listWidget.count())
-        #     self.engineMove()
         if self.tableWidget.rowCount()%2 == 0:
             self.label_3.setText(self.label_3.text().replace('первого', 'второго'))
         else:
@@ -99,7 +89,6 @@ class Example(Ui_MainWindow, QObject, object):
                 startpos.append('')
             else:
                 startpos.append(self.tableWidget.item(row, 0).text())
-        # self.tableWidget.clear() #?
         self.graphicsView.scene().drawAll(startpos, silence=True)
         self.engineAnalisis()
 
@@ -107,37 +96,12 @@ class Example(Ui_MainWindow, QObject, object):
         start_pos = self.graphicsView.scene().transl.getBoard()
         bst_mov = self.eng.cp_of_next_move(start_pos, depth=17)[0]
         self.updateMoves(bst_mov)
-        # self.listWidget.setCurrentRow(self.listWidget.count()-1)
         self.tableWidget.setCurrentCell(self.tableWidget.rowCount()-1, 0)
         
     def engineAnalisis(self):
-        # как определяет позиция? перенести в some_analisis_stuff
-        start_pos = self.graphicsView.scene().transl.getBoard()
-        bst_mov = ""
-        # найти cp за лучший рекомендуемый следующий ход
-        temp_because_yaneoura_besit = self.eng.cp_of_next_move(start_pos, depth=17)
-        if temp_because_yaneoura_besit[1] == -111111111:
-            bst_mov = temp_because_yaneoura_besit[0]
-            mov_cp, mov_cp_40000, mov_cp_localMax = self.eng.cp_of_current_move(start_pos, bst_mov, depth=17)
-        else:
-            bst_mov,mov_cp = temp_because_yaneoura_besit
-            mov_cp_40000 = mov_cp
-            mov_cp_localMax = mov_cp
-            mov_cp = int(min(abs(mov_cp),10000)*np.sign(mov_cp))
-        if (self.tableWidget.rowCount() - 1) % 2 == 0:
-            temp_sign = 1
-        else:
-            temp_sign = -1
-        print(temp_sign, end=' ')
-        if self.plainTextEdit.toPlainText() != '':
-            # разберись со знаками...
-            print(int(self.plainTextEdit.toPlainText().split()[-1]), mov_cp, self.last_cp, str(-temp_sign*(-self.last_cp - (np.sign(mov_cp)*temp_sign)*mov_cp)))
-            self.plainTextEdit.setPlainText("Изменение оценки позиции в результате хода = " + str(-temp_sign*(-self.last_cp - (np.sign(mov_cp)*temp_sign)*mov_cp)))
-            self.tableWidget.setItem(self.tableWidget.rowCount()-1, 1, QTableWidgetItem(str(-temp_sign*(-self.last_cp - (np.sign(mov_cp)*temp_sign)*mov_cp))))
-        else:
-            self.plainTextEdit.setPlainText("Изменение оценки позиции в результате хода = " + str(mov_cp))
-            self.tableWidget.setItem(self.tableWidget.rowCount()-1, 1, QTableWidgetItem(str(mov_cp)))
-            print('-', mov_cp ,self.last_cp, '-')
+        mov_cp, mov_cp_diff = self.analisis.moveDiffrence(self.graphicsView.scene().transl.getBoard(), self.last_cp, self.tableWidget.rowCount() - 1)
+        self.tableWidget.setItem(self.tableWidget.currentRow(), 1, QTableWidgetItem(str(mov_cp_diff)))
+        # как определяет позиция?              
         self.last_cp = mov_cp
 
     def showDialog_connectEngine(self):

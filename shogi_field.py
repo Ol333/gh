@@ -21,7 +21,6 @@ class MvScene(QGraphicsScene, QObject):
     nari_figures = {'歩':'と', '桂':'圭', '銀':'全','角':'馬', '飛':'龍', '香':'杏'}
     brush = None
     
-    # def __init__(self, com, startpos=['7g7f']):
     def __init__(self, com, startpos=['']):
         super().__init__()
         if os.path.exists("graphics/desk.jpg"):
@@ -35,18 +34,18 @@ class MvScene(QGraphicsScene, QObject):
         else:
             self.brush_auto = QBrush(QColor(235, 207, 153))
         self.comm = com
-        self.drawAll(startpos)
+        # self.drawAll(startpos)
         
     def drawAll(self, startpos, silence=False):
         self.clear()
         self.createDesk()
         self.transl = kifu_translation.Kifu_translator()
-        res_pos = []
+        res_pos = [[],[],[]]
         for move in startpos:
             res_pos = self.transl.posToDesk(move)
             if not silence:
                 self.comm.updMoves.emit(move) #вызов функции из главного окна
-        for f in res_pos:
+        for f in res_pos[0]:
             self.addFigure(f[0],f[1],f[2],f[3])
         for i in range(9):
             t = self.addText(str(i+1))
@@ -59,6 +58,12 @@ class MvScene(QGraphicsScene, QObject):
         for k in self.komodai_dict_1:
             self.komodai_dict_1[k][0] = self.addText(str(0))
             self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)
+        for f in res_pos[1]:
+            self.addFigure(1, self.komodai_dict_1[f[0]][1]//50, self.komodai_dict_1[f[0]][2]//50, f)
+            self.komodai_dict_1[f[0]][0].setPlainText(str(int(self.komodai_dict_1[f[0]][0].toPlainText())+1))
+        for f in res_pos[2]:
+            self.addFigure(0, self.komodai_dict_0[f[0]][1]//50, self.komodai_dict_0[f[0]][2]//50, f)
+            self.komodai_dict_0[f[0]][0].setPlainText(str(int(self.komodai_dict_0[f[0]][0].toPlainText())+1))
 
     def mousePressEvent(self, mouseEvent):
         if (mouseEvent.button() == Qt.RightButton):
@@ -68,9 +73,9 @@ class MvScene(QGraphicsScene, QObject):
             if (item):
                 if (item.data(0) == "Figure"):
                     self.selectFigure(item, mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
-                if (item.data(0) == "Desk" and self.selected_figure != None):
+                elif (item.data(0) == "Desk" and self.selected_figure != None):
                     self.moveFigure(mouseEvent.scenePos().x(), mouseEvent.scenePos().y())
-                if (item.data(0) == "Auto Game"):
+                elif (item.data(0) == "Auto Game"):
                     self.comm.autoGame.emit()
 
     def createDesk(self):
@@ -125,7 +130,8 @@ class MvScene(QGraphicsScene, QObject):
         if 0 <= old_pos[0] < 9 and 0 <= old_pos[1] < 9:
             if (not fu.data(4) 
                 and ((fu.data(1) == 0 and (int(y // 50) < 3 or old_pos[1] < 3)) 
-                    or (fu.data(1) == 1 and (int(y // 50) > 5 or old_pos[1] > 5)))): # переворот
+                    or (fu.data(1) == 1 and (int(y // 50) > 5 or old_pos[1] > 5)))
+                and not (fu.data(2) in ['金', '王', '玉'])): # переворот
                 fl_of_instant_nari = self.nari(fu)
             self.posSend(str(9-old_pos[0])+'abcdefghi'[old_pos[1]], int(x // 50), int(y // 50),'+'*fl_of_instant_nari)
         else:
@@ -159,9 +165,11 @@ class MvScene(QGraphicsScene, QObject):
                             and ((fu.data(1) == 1 and int(y // 50) < 3) 
                                 or (fu.data(1) == 0 and int(y // 50) > 5) 
                                 or (self.selected_figure[0].data(1) == 1 and self.selected_figure[3] > 5) 
-                                or (self.selected_figure[0].data(1) == 0 and self.selected_figure[3] < 3))): # переворот
+                                or (self.selected_figure[0].data(1) == 0 and self.selected_figure[3] < 3))
+                            and not (self.selected_figure[0].data(2) in ['金', '王', '玉'])): # переворот
                             fl_of_instant_nari = self.nari(self.selected_figure[0])
                         self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50),'+' * fl_of_instant_nari)
+                        #
                         self.selectFigureDop(self.selected_figure[0], self.selected_figure[1], int(x // 50)*50, int(y // 50)*50)
                         if fu.data(1) == 0:
                             fu.setData(1,1)
@@ -175,6 +183,7 @@ class MvScene(QGraphicsScene, QObject):
                             self.komodai_dict_0[fu.data(2)][0].setPlainText(str(int(self.komodai_dict_0[fu.data(2)][0].toPlainText())+1))
                             self.selectFigureDop(fu, pol, new_x, new_y)
                             self.selectFigureDop(fu, pol)
+                        #
                     else:
                         self.selectFigureDop(self.selected_figure[0], self.selected_figure[1]) # сброс выделения
                         self.selectFigureDop(fu, pol)            

@@ -87,10 +87,18 @@ class MvScene(QGraphicsScene, QObject):
         left_komodai.setData(0, "Left komodai")
         right_komodai = self.addRect(455.0,250.0,100.0,200.0, QPen(QColor(255, 255, 255)), self.brush)
         right_komodai.setData(0, "Right komodai")
-        fpn = self.addText('second player name')
-        fpn.setPos(-105.0,-25.0)
-        spn = self.addText('first player name')
-        spn.setPos(455.0,460.0)
+        spn = self.addText('second player name')
+        spn.setPos(-105.0,-25.0)
+        sspm = self.addText('Средний плохой ход: ')
+        sspm.setPos(-105.0,-45.0)
+        self.sspm = self.addText('0')
+        self.sspm.setPos(5.0,-45.0)
+        fpn = self.addText('first player name')
+        fpn.setPos(455.0,460.0)
+        fspm = self.addText('Средний плохой ход: ')
+        fspm.setPos(425.0,480.0)
+        self.fspm = self.addText('0')
+        self.fspm.setPos(535.0,480.0)
         autoGame = self.addRect(500.0,-20.0,49.0,37.0, QPen(QColor(255, 255, 255)), self.brush_auto)
         autoGame.setToolTip('Ход движка')
         autoGame.setData(0, "Auto Game")
@@ -131,7 +139,8 @@ class MvScene(QGraphicsScene, QObject):
             if (not fu.data(4) 
                 and ((fu.data(1) == 0 and (int(y // 50) < 3 or old_pos[1] < 3)) 
                     or (fu.data(1) == 1 and (int(y // 50) > 5 or old_pos[1] > 5)))
-                and not (fu.data(2) in ['金', '王', '玉'])): # переворот
+                and not (fu.data(2) in ['金', '王', '玉'])
+                and not fu.data(4)): # переворот
                 fl_of_instant_nari = self.nari(fu)
             self.posSend(str(9-old_pos[0])+'abcdefghi'[old_pos[1]], int(x // 50), int(y // 50),'+'*fl_of_instant_nari)
         else:
@@ -166,7 +175,8 @@ class MvScene(QGraphicsScene, QObject):
                                 or (fu.data(1) == 0 and int(y // 50) > 5) 
                                 or (self.selected_figure[0].data(1) == 1 and self.selected_figure[3] > 5) 
                                 or (self.selected_figure[0].data(1) == 0 and self.selected_figure[3] < 3))
-                            and not (self.selected_figure[0].data(2) in ['金', '王', '玉'])): # переворот
+                            and not (self.selected_figure[0].data(2) in ['金', '王', '玉'])
+                            and not self.selected_figure[0].data(4)): # переворот
                             fl_of_instant_nari = self.nari(self.selected_figure[0])
                         self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50),'+' * fl_of_instant_nari)
                         #

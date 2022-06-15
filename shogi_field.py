@@ -16,8 +16,8 @@ class MvScene(QGraphicsScene, QObject):
     selected_figure = None
     komodai_dict_0 = {'歩':[0, 460, 400], '桂':[0,510,400], '香':[0,460,350], '銀':[0,510,350], '金':[0,460,300], '角':[0,510,300],  '飛':[0,460,250]}
     komodai_dict_1 = {'歩':[0,-50,0], '桂':[0,-100,0], '香':[0,-50,50], '銀':[0,-100,50], '金':[0,-50,100], '角':[0,-100,100],  '飛':[0,-50,150]}
-    figures_list_jp = ['歩', '王','玉', '飛', '角', '金', '銀', '桂', '香']
-    figures_list_en = ['p', 'k', 'K', 'r', 'b', 'g', 's', 'n', 'l']
+    figures_list_jp = ['歩', '王','玉', '飛', '角', '金', '銀', '桂', '香', 'と', '圭', '全', '馬', '龍', '杏']
+    figures_list_en = ['p', 'k', 'K', 'r', 'b', 'g', 's', 'n', 'l', '+p', '+n', '+s', '+b', '+r', '+l']
     nari_figures = {'歩':'と', '桂':'圭', '銀':'全','角':'馬', '飛':'龍', '香':'杏'}
     brush = None
     
@@ -87,14 +87,14 @@ class MvScene(QGraphicsScene, QObject):
         left_komodai.setData(0, "Left komodai")
         right_komodai = self.addRect(455.0,250.0,100.0,200.0, QPen(QColor(255, 255, 255)), self.brush)
         right_komodai.setData(0, "Right komodai")
-        spn = self.addText('second player name')
-        spn.setPos(-105.0,-25.0)
+        self.spn = self.addText('second player name')
+        self.spn.setPos(-105.0,-25.0)
         sspm = self.addText('Средний плохой ход: ')
         sspm.setPos(-105.0,-45.0)
         self.sspm = self.addText('0')
         self.sspm.setPos(5.0,-45.0)
-        fpn = self.addText('first player name')
-        fpn.setPos(455.0,460.0)
+        self.fpn = self.addText('first player name')
+        self.fpn.setPos(455.0,460.0)
         fspm = self.addText('Средний плохой ход: ')
         fspm.setPos(425.0,480.0)
         self.fspm = self.addText('0')
@@ -139,7 +139,7 @@ class MvScene(QGraphicsScene, QObject):
             if (not fu.data(4) 
                 and ((fu.data(1) == 0 and (int(y // 50) < 3 or old_pos[1] < 3)) 
                     or (fu.data(1) == 1 and (int(y // 50) > 5 or old_pos[1] > 5)))
-                and not (fu.data(2) in ['金', '王', '玉'])
+                and not (fu.data(2) in ['金', '王', '玉', 'と', '圭', '全', '馬', '龍', '杏'])
                 and not fu.data(4)): # переворот
                 fl_of_instant_nari = self.nari(fu)
             self.posSend(str(9-old_pos[0])+'abcdefghi'[old_pos[1]], int(x // 50), int(y // 50),'+'*fl_of_instant_nari)
@@ -153,8 +153,13 @@ class MvScene(QGraphicsScene, QObject):
 
     def posSend(self, old_or_figure, new_i, new_j, nari=''):
         usi_move = old_or_figure+str(9-new_i)+'abcdefghi'[new_j] + nari
-        self.transl.addMove(usi_move)
-        self.comm.updMoves.emit(usi_move)
+        legal, stalemate, mate = self.transl.addMove(usi_move)
+        if legal and not mate:
+            self.comm.updMoves.emit(usi_move)
+        elif not legal:
+            self.comm.gameOver.emit('Запрещенный ход.')
+        else:
+            self.comm.gameOver.emit('Мат.')
 
     def selectFigure(self, fu, x, y):
         fu.setVisible(False)
@@ -175,7 +180,7 @@ class MvScene(QGraphicsScene, QObject):
                                 or (fu.data(1) == 0 and int(y // 50) > 5) 
                                 or (self.selected_figure[0].data(1) == 1 and self.selected_figure[3] > 5) 
                                 or (self.selected_figure[0].data(1) == 0 and self.selected_figure[3] < 3))
-                            and not (self.selected_figure[0].data(2) in ['金', '王', '玉'])
+                            and not (self.selected_figure[0].data(2) in ['金', '王', '玉', 'と', '圭', '全', '馬', '龍', '杏'])
                             and not self.selected_figure[0].data(4)): # переворот
                             fl_of_instant_nari = self.nari(self.selected_figure[0])
                         self.posSend(str(9-self.selected_figure[2])+'abcdefghi'[self.selected_figure[3]], int(x // 50), int(y // 50),'+' * fl_of_instant_nari)

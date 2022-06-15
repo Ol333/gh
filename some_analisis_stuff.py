@@ -23,9 +23,8 @@ class SomeAnalisisStuff(ec.Engine):
             temp_sign = -1
         print(temp_sign, end=' ')
         if move_count != 1:
-            ### разберись со знаками...
-            print(mov_cp, last_cp, str(-temp_sign*(-last_cp - (np.sign(mov_cp)*temp_sign)*mov_cp)))
-            mov_cp_diff = -temp_sign*(-last_cp - (np.sign(mov_cp)*temp_sign)*mov_cp)
+            print(mov_cp, last_cp, last_cp + mov_cp)
+            mov_cp_diff = last_cp + mov_cp
         else:
             mov_cp_diff = mov_cp
             print('-', mov_cp ,last_cp, '-')
@@ -61,27 +60,27 @@ class SomeAnalisisStuff(ec.Engine):
         
         if pl_numb == 0:
             res = self.fspm
-            print('расчет до расчета', res)
+            # print('расчет до расчета', res)
             if mov_cp_diff < 0:
                 res = round(((self.fspm * self.fbmc) + mov_cp_diff) / (self.fbmc + 1), 2)
             self.fspm = res
             self.fbmc += 1
         else:
             res = self.sspm
-            print('расчет до расчета', res)
+            # print('расчет до расчета', res)
             if mov_cp_diff < 0:
                 res = round(((self.sspm * self.sbmc) + mov_cp_diff) / (self.sbmc + 1), 2)
             self.sspm = res
             self.sbmc += 1
-        print('расчет', res)
+        # print('расчет', res)
         return res
     
     def yamashita_fp(self):
-        print('yamashita_fp', self.fspm)
+        # print('yamashita_fp', self.fspm)
         return str(self.fspm)
 
     def yamashita_sp(self):
-        print('yamashita_sp', self.sspm)
+        # print('yamashita_sp', self.sspm)
         return str(self.sspm)
 
     def moveClass(self, cur_mov_cp, mov_cp_diff, start_pos):

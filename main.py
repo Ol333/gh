@@ -1,5 +1,7 @@
 import sys
 import os
+from telnetlib import TM
+from tracemalloc import start
 import numpy as np
 import subprocess
 from datetime import datetime, timedelta
@@ -33,6 +35,7 @@ class Example(Ui_MainWindow, QObject, object):
         self.eng = ec.Engine(engNam)
         self.rwd = rab_with_db.DbConnection("shogi_db10000.db")
         self.analisis = sas.SomeAnalisisStuff(self.eng)
+        self.restartFlag = False
         # self.eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-avx2")
         self.tableWidget.setColumnCount(4)
         self.newGame()
@@ -54,13 +57,17 @@ class Example(Ui_MainWindow, QObject, object):
         self.actionAboutProgram.triggered.connect(self.aboutProgram)
         self.comm.updMoves.connect(self.updateMoves)
         self.comm.autoGame.connect(self.engineMove)
+        self.comm.gameOver.connect(self.gameOver)
         self.graphicsView.setScene(shogi_field.MvScene(self.comm))
         self.tableWidget.currentItemChanged.connect(self.changeMove) # list -> graph
         self.actionNewGame.triggered.connect(self.newGame)
 
     def newGame(self):
+        self.restartFlag = True
         self.last_cp = 0
-        self.tableWidget.clear()
+        start_row_count = self.tableWidget.rowCount() - 1
+        for i in range(start_row_count,-1,-1):
+            self.tableWidget.removeRow(i)
         self.tableWidget.setHorizontalHeaderLabels(['Ход', 'Выигрыш', 'Рейтинг по Ферреире', 'Класс хода'])
         self.tableWidget.horizontalHeaderItem(0).setToolTip('Ход в координатах \nдоски.')
         self.tableWidget.horizontalHeaderItem(1).setToolTip('Изменение позиции. \nПоложительное число \n- выигрыш, отрицательное \n- проигрыш.')
@@ -74,6 +81,7 @@ class Example(Ui_MainWindow, QObject, object):
         self.tableWidget.setVerticalHeaderItem(0, QTableWidgetItem('0'))        
         self.tableWidget.setRowCount(0)
         self.graphicsView.scene().drawAll([''])
+        self.restartFlag = False
             
     def saveKifuToDB(self):
         print('save')
@@ -85,62 +93,78 @@ class Example(Ui_MainWindow, QObject, object):
         self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
         self.tableWidget.setItem(self.tableWidget.rowCount()-1, 0, QTableWidgetItem(s))
         self.tableWidget.setVerticalHeaderItem(self.tableWidget.rowCount()-1, QTableWidgetItem(str(self.tableWidget.rowCount()-1)))
-
-        # self.tableWidget.setCurrentCell(self.tableWidget.rowCount()-1, 0) # вызывает ошибку
-        
+        # self.tableWidget.setCurrentCell(self.tableWidget.rowCount()-1, 0) # вызывает ошибку  
         if self.tableWidget.rowCount()%2 == 0:
             self.label_3.setText(self.label_3.text().replace('первого', 'второго'))
         else:
             self.label_3.setText(self.label_3.text().replace('второго', 'первого'))
 
     def changeMove(self):
-        startpos = []
-        for row in range(self.tableWidget.currentRow()+1):
-            if self.tableWidget.item(row, 0) == None:
-                startpos.append('')
-            else:
-                startpos.append(self.tableWidget.item(row, 0).text())
-        self.graphicsView.scene().drawAll(startpos, silence=True)
-        self.graphicsView.scene().fspm.setPlainText(self.analisis.yamashita_fp())
-        self.graphicsView.scene().sspm.setPlainText(self.analisis.yamashita_sp())
-        self.engineAnalisis()
+        if not self.restartFlag:
+            startpos = []
+            for row in range(self.tableWidget.currentRow()+1):
+                if self.tableWidget.item(row, 0) == None:
+                    startpos.append('')
+                else:
+                    startpos.append(self.tableWidget.item(row, 0).text())
+            self.graphicsView.scene().drawAll(startpos, silence=True)
+            self.graphicsView.scene().fspm.setPlainText(self.analisis.yamashita_fp())
+            self.graphicsView.scene().sspm.setPlainText(self.analisis.yamashita_sp())
+            self.engineAnalisis()
+
+    def gameOver(self, s):
+        mb = QMessageBox()
+        mb.setWindowTitle("Сообщение")
+        mb.setText("Игра закончена.\nПричина:\n"+ s +"\nПобедитель - "
+                    + (self.graphicsView.scene().fpn.toPlainText() if self.tableWidget.rowCount()%2 == 0 else 'второй'))
+        mb.exec()
 
     def engineMove(self):
         start_pos = self.graphicsView.scene().transl.getBoard()
         bst_mov = self.eng.cp_of_next_move(start_pos, depth=17)[0]
-        self.updateMoves(bst_mov)
-        self.tableWidget.setCurrentCell(self.tableWidget.rowCount()-1, 0)
+        if bst_mov == 'resign':
+            self.gameOver('Игрок сдался.')
+        else:
+            self.updateMoves(bst_mov)
+            self.tableWidget.setCurrentCell(self.tableWidget.rowCount()-1, 0)
         
     def engineAnalisis(self):
-        mov_cp, mov_cp_diff = self.analisis.moveDiffrence(self.graphicsView.scene().transl.getBoard(), self.last_cp, self.tableWidget.rowCount() - 1)
-        self.tableWidget.setItem(self.tableWidget.currentRow(), 1, QTableWidgetItem(str(mov_cp_diff)))
-        
-        pl_str = []
-        if self.tableWidget.rowCount()%2 == 0:
-            for i in range(1, self.tableWidget.rowCount(), 2):
-                pl_str.append(int(self.tableWidget.item(i,1).text()))
-        else:
-            for i in range(2, self.tableWidget.rowCount(), 2):
-                pl_str.append(int(self.tableWidget.item(i,1).text()))
-        ferreira = self.analisis.ferreira(pl_str)
-        self.tableWidget.setItem(self.tableWidget.currentRow(), 2, QTableWidgetItem(str(ferreira)))
+        if self.tableWidget.rowCount() > 1:
+            # if self.tableWidget.item(self.tableWidget.rowCount()-2,1) == None:
+            #     temp_iter = self.tableWidget.rowCount()-2
+            #     while self.tableWidget.item(temp_iter,1) == None and temp_iter > 1:
+            #         temp_iter -= 1
+            #     for i in range(temp_iter, self.tableWidget.rowCount()-1):
+            #         self.tableWidget.setCurrentCell(i,0)
+            mov_cp, mov_cp_diff = self.analisis.moveDiffrence(self.graphicsView.scene().transl.getBoard(), self.last_cp, self.tableWidget.rowCount() - 1)
+            self.tableWidget.setItem(self.tableWidget.currentRow(), 1, QTableWidgetItem(str(mov_cp_diff)))
+            
+            pl_str = []
+            if self.tableWidget.currentRow()%2 == 1:
+                for i in range(1, self.tableWidget.currentRow()+1, 2):
+                    pl_str.append(int(self.tableWidget.item(i,1).text()))
+            else:
+                for i in range(2, self.tableWidget.currentRow()+1, 2):
+                    pl_str.append(int(self.tableWidget.item(i,1).text()))
+            ferreira = self.analisis.ferreira(pl_str)
+            self.tableWidget.setItem(self.tableWidget.currentRow(), 2, QTableWidgetItem(str(ferreira)))
 
-        if self.tableWidget.rowCount()%2 == 0:
-            bad_moves_count = 0
-            for i in range(1, self.tableWidget.rowCount(), 2):
-                if int(self.tableWidget.item(i,1).text()) < 0:
-                    bad_moves_count += 1
-            self.graphicsView.scene().fspm.setPlainText(str(self.analisis.yamashita(0, mov_cp_diff)))
-        else:
-            bad_moves_count = 0
-            for i in range(2, self.tableWidget.rowCount(), 2):
-                if int(self.tableWidget.item(i,1).text()) < 0:
-                    bad_moves_count += 1
-            self.graphicsView.scene().sspm.setPlainText(str(self.analisis.yamashita(1, mov_cp_diff)))
+            if self.tableWidget.currentRow()%2 == 1:
+                bad_moves_count = 0
+                for i in range(1, self.tableWidget.currentRow()+1, 2):
+                    if int(self.tableWidget.item(i,1).text()) < 0:
+                        bad_moves_count += 1
+                self.graphicsView.scene().fspm.setPlainText(str(self.analisis.yamashita(0, mov_cp_diff)))
+            else:
+                bad_moves_count = 0
+                for i in range(2, self.tableWidget.currentRow()+1, 2):
+                    if int(self.tableWidget.item(i,1).text()) < 0:
+                        bad_moves_count += 1
+                self.graphicsView.scene().sspm.setPlainText(str(self.analisis.yamashita(1, mov_cp_diff)))
 
-        self.tableWidget.setItem(self.tableWidget.currentRow(), 3, QTableWidgetItem(str(self.analisis.moveClass(mov_cp, mov_cp_diff, self.graphicsView.scene().transl.getBoard()))))
-        
-        self.last_cp = mov_cp
+            self.tableWidget.setItem(self.tableWidget.currentRow(), 3, QTableWidgetItem(str(self.analisis.moveClass(mov_cp, mov_cp_diff, self.graphicsView.scene().transl.getBoard()))))
+            
+            self.last_cp = mov_cp
 
     def showDialog_connectEngine(self):
         path = QFileDialog.getOpenFileName(self.form,
@@ -157,7 +181,7 @@ class Example(Ui_MainWindow, QObject, object):
     def pasteGame(self):
         mb = QMessageBox()
         mb.setWindowTitle("Вставить игру")
-        mb.setText("Можно вставить в формате KIF или последовательность ходов...")
+        mb.setText("Можно вставить игру в формате KIF или в виде последовательности ходов...")
         mb.exec()
 
     def copyGame(self): # копируются только ходы, экспорта в KIF не предусмотрено
@@ -188,6 +212,7 @@ class InputDialog(QDialog):
 class Communicate(QObject):
     updMoves = pyqtSignal(str)
     autoGame = pyqtSignal()
+    gameOver = pyqtSignal(str)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

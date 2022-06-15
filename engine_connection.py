@@ -73,7 +73,9 @@ class Connector:
         while line_end := process.stdout.readline().decode('utf8'):
             if line_end.find('bestmove') > -1:
                 best_move = line_end.split(' ')[1].replace('\r\n','')
-                if not (best_move in out_variants):
+                if best_move == 'resign':
+                    return ('resign', 0)
+                elif not (best_move in out_variants):
                     return (best_move,-111111111)
                 else:
                     return (best_move,out_variants[best_move])
@@ -81,6 +83,13 @@ class Connector:
                 temp = line_end.split(' ')
                 if 'cp' in temp and 'pv' in temp:
                     temp_cp = int(temp[temp.index('cp') + 1])
+                    temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
+                    out_variants[temp_pv] = temp_cp
+                elif 'mate' in temp:
+                    steps_to_mate = int(temp[temp.index('mate') + 1].replace('\r\n',''))
+                    temp_cp = 10000
+                    if steps_to_mate < 0:
+                        temp_cp *= -1
                     temp_pv = temp[temp.index('pv') + 1].replace('\r\n','')
                     out_variants[temp_pv] = temp_cp
         print("вообще-то сюда не должно приходить 2...")

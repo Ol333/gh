@@ -60,28 +60,25 @@ class SomeAnalisisStuff(ec.Engine):
         
         if pl_numb == 0:
             res = self.fspm
-            # print('расчет до расчета', res)
             if mov_cp_diff < 0:
                 res = round(((self.fspm * self.fbmc) + mov_cp_diff) / (self.fbmc + 1), 2)
             self.fspm = res
             self.fbmc += 1
         else:
             res = self.sspm
-            # print('расчет до расчета', res)
             if mov_cp_diff < 0:
                 res = round(((self.sspm * self.sbmc) + mov_cp_diff) / (self.sbmc + 1), 2)
             self.sspm = res
             self.sbmc += 1
-        # print('расчет', res)
-        return res
+        return round(res*(-3148)+4620, 2)
     
     def yamashita_fp(self):
         # print('yamashita_fp', self.fspm)
-        return str(self.fspm)
+        return str(round(self.fspm*(-3148)+4620,2))
 
     def yamashita_sp(self):
         # print('yamashita_sp', self.sspm)
-        return str(self.sspm)
+        return str(round(self.sspm*(-3148)+4620, 2))
 
     def moveClass(self, cur_mov_cp, mov_cp_diff, start_pos):
         # найти cp за лучший рекомендуемый следующий ход
@@ -92,7 +89,7 @@ class SomeAnalisisStuff(ec.Engine):
         else:
             bst_mov,mov_cp = temp_because_yaneoura_besit
             mov_cp = int(min(abs(mov_cp),10000)*np.sign(mov_cp))
-        return self.classificator.predict([mov_cp_diff, mov_cp-cur_mov_cp])
+        return (self.classificator.predict([mov_cp_diff, mov_cp-cur_mov_cp]), mov_cp)
 
 class MovesClassificator:
     def __init__(self):

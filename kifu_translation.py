@@ -52,3 +52,10 @@ class Kifu_translator:
     def getBoard(self):
         # return self.board.sfen()
         return self.movesSequence
+
+    def kifTr(self, s):
+        kif = shogi.KIF.Parser.parse_str(s)[0]
+        res = None
+        for m in kif['moves']:
+            res = self.posToDesk(m)
+        return (res, kif['moves'])

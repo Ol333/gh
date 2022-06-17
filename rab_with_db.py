@@ -30,7 +30,7 @@ class DbConnection:
         self.cur.execute(f"DELETE FROM Player WHERE login='{login}'")
         self.con.commit()
 
-    def kifu_addself(self,kifu):
+    def kifu_add(self,kifu):
         self.cur.execute("""INSERT into Kifu values
                         (null,?)""",(kifu,))
         self.con.commit()
@@ -86,7 +86,7 @@ class DbConnection:
 
     def move_add(self,kifu_id,numb,rec_cp,rec_pv,real_cp): #добавить всякое для таблицы Move
         self.cur.execute("""INSERT into Move values
-                        (null,?,?,?,?,?)""",(kifu_id,numb,rec_cp,rec_pv,real_cp))
+                        (null,?,?,?,?,?)""",(kifu_id,numb,rec_pv,rec_cp,real_cp))
         self.con.commit()
         return self.cur.lastrowid
 
@@ -98,6 +98,40 @@ class DbConnection:
         for a in self.cur.fetchall():
             mas.append(a)
         return mas
+
+    def save_game(self, pl1, pl2, moves):
+        pl1 = self.player_check_add(pl1)
+        pl2 = self.player_check_add(pl2)
+        kif_id = self.kifu_add('')
+        print(pl1, pl2, kif_id)
+        part1 = self.participation_add(pl1, kif_id)
+        part2 = self.participation_add(pl2, kif_id)
+        for m in moves:
+            self.move_add(kif_id, m[0], m[1], m[2], m[3])
+
+    def pl_and_kifu(self,pl_id):
+        mas = []
+        res = []
+        self.cur.execute(f"SELECT id_Kifu,id_Player FROM Participation WHERE id_Player={pl_id}")
+        for a in self.cur.fetchall():
+            mas.append(a)
+        for a in mas:
+            res.append([])
+            self.cur.execute(f"SELECT kifu FROM Kifu WHERE id={a[0]}")
+            for aa in self.cur.fetchall():
+                res[-1].append(aa[0])
+                res[-1].append(a[0])
+            self.cur.execute(f"SELECT id_Player FROM Participation WHERE id_Kifu={a[0]}")
+            for aaa in self.cur.fetchall():
+                res[-1].append(aaa[0])
+        return res
+
+    def get_kifu(self, id):
+        res = []
+        self.cur.execute(f"SELECT kifu FROM Kifu WHERE id={id}")
+        for aa in self.cur.fetchall():
+            res.append(aa[0])
+        return res
 
     # ##вывод всех таблиц
     # def print_tabl(self):

@@ -35,16 +35,22 @@ class MvScene(QGraphicsScene, QObject):
             self.brush_auto = QBrush(QColor(235, 207, 153))
         self.comm = com
         # self.drawAll(startpos)
-        
+
     def drawAll(self, startpos, silence=False):
         self.clear()
         self.createDesk()
         self.transl = kifu_translation.Kifu_translator()
         res_pos = [[],[],[]]
-        for move in startpos:
-            res_pos = self.transl.posToDesk(move)
-            if not silence:
-                self.comm.updMoves.emit(move) #вызов функции из главного окна
+        if isinstance(startpos, str):
+            res_pos,moves = self.transl.kifTr(startpos)
+            for move in moves:
+                if not silence:
+                    self.comm.updMoves.emit(move) #вызов функции из главного окна
+        else:
+            for move in startpos:
+                res_pos = self.transl.posToDesk(move)
+                if not silence:
+                    self.comm.updMoves.emit(move) #вызов функции из главного окна
         for f in res_pos[0]:
             self.addFigure(f[0],f[1],f[2],f[3])
         for i in range(9):
@@ -89,13 +95,13 @@ class MvScene(QGraphicsScene, QObject):
         right_komodai.setData(0, "Right komodai")
         self.spn = self.addText('second player name')
         self.spn.setPos(-105.0,-25.0)
-        sspm = self.addText('Средний плохой ход: ')
+        sspm = self.addText('Рейтинг по Ямасите: ')
         sspm.setPos(-105.0,-45.0)
         self.sspm = self.addText('0')
         self.sspm.setPos(5.0,-45.0)
         self.fpn = self.addText('first player name')
         self.fpn.setPos(455.0,460.0)
-        fspm = self.addText('Средний плохой ход: ')
+        fspm = self.addText('Рейтинг по Ямасите: ')
         fspm.setPos(425.0,480.0)
         self.fspm = self.addText('0')
         self.fspm.setPos(535.0,480.0)

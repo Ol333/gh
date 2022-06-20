@@ -157,8 +157,6 @@ class Example(Ui_MainWindow, Ui_Form, QObject, object):
             self.label_3.setText(self.label_3.text().replace('первого', 'второго'))
         else:
             self.label_3.setText(self.label_3.text().replace('второго', 'первого'))
-        self.graphicsView_2.scene().clear()
-        self.graphicsView_2.scene().addPixmap(self.plotCPChange())
 
     def plotCPChange(self):
         rcp_mas_f = np.array(self.moves_cp_f)
@@ -216,12 +214,10 @@ class Example(Ui_MainWindow, Ui_Form, QObject, object):
         
     def engineAnalisis(self):
         if self.tableWidget.rowCount() > 1:
-            # if self.tableWidget.item(self.tableWidget.rowCount()-2,1) == None:
-            #     temp_iter = self.tableWidget.rowCount()-2
-            #     while self.tableWidget.item(temp_iter,1) == None and temp_iter > 1:
-            #         temp_iter -= 1
-            #     for i in range(temp_iter, self.tableWidget.rowCount()-1):
-            #         self.tableWidget.setCurrentCell(i,0)
+            temp_cur_row = self.tableWidget.currentRow()
+            if self.tableWidget.currentRow()-1 > 0 and self.tableWidget.item(self.tableWidget.currentRow()-1,1) == None:
+                self.tableWidget.setCurrentCell(self.tableWidget.currentRow()-1,0)
+                self.tableWidget.setCurrentCell(temp_cur_row,0)
             mov_cp, mov_cp_diff = self.analisis.moveDiffrence(self.graphicsView.scene().transl.getBoard(), self.last_cp, self.tableWidget.rowCount() - 1)
             if self.tableWidget.currentRow()%2==1:
                 self.moves_cp_f.append(-mov_cp)
@@ -258,6 +254,8 @@ class Example(Ui_MainWindow, Ui_Form, QObject, object):
             self.rec_cp.append(rec_cp)
             self.tableWidget.setItem(self.tableWidget.currentRow(), 4, QTableWidgetItem(str(self.eng.cp_of_next_move(self.graphicsView.scene().transl.getBoard(), depth=17)[0])))
             self.last_cp = mov_cp
+            self.graphicsView_2.scene().clear()
+            self.graphicsView_2.scene().addPixmap(self.plotCPChange())
 
     def showDialog_connectEngine(self):
         path = QFileDialog.getOpenFileName(self.form,

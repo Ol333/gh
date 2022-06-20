@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1245</width>
+    <width>1343</width>
     <height>679</height>
    </rect>
   </property>
@@ -67,8 +67,8 @@
      <rect>
       <x>730</x>
       <y>40</y>
-      <width>501</width>
-      <height>561</height>
+      <width>601</width>
+      <height>331</height>
      </rect>
     </property>
     <property name="font">
@@ -83,13 +83,23 @@
      <enum>QAbstractItemView::SelectRows</enum>
     </property>
    </widget>
+   <widget class="QGraphicsView" name="graphicsView_2">
+    <property name="geometry">
+     <rect>
+      <x>730</x>
+      <y>380</y>
+      <width>601</width>
+      <height>221</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1245</width>
+     <width>1343</width>
      <height>21</height>
     </rect>
    </property>
@@ -117,6 +127,7 @@
      <string>Правка</string>
     </property>
     <addaction name="actionNewGame"/>
+    <addaction name="actionContinueGame"/>
     <addaction name="separator"/>
     <addaction name="actionCopyGame"/>
     <addaction name="actionPasteGame"/>
@@ -179,6 +190,11 @@
   <action name="actionChangePlayerName">
    <property name="text">
     <string>Изменить имя игрока</string>
+   </property>
+  </action>
+  <action name="actionContinueGame">
+   <property name="text">
+    <string>Продолжить с текущей позиции</string>
    </property>
   </action>
  </widget>

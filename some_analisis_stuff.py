@@ -52,7 +52,7 @@ class SomeAnalisisStuff(ec.Engine):
         expected_score = 0.5 * self.ver_raspr_rasn(hd1, hd_eng, 0) + sum
         z = norm.ppf(expected_score)
         d = z * 200 * 2**(0.5)
-        return round(d,2)
+        return round(d,2) + 4100
 
     def yamashita(self, pl_numb, mov_cp_diff):
         # среднее значение только проигрышей
@@ -73,11 +73,9 @@ class SomeAnalisisStuff(ec.Engine):
         return round(res*(-3148)+4620, 2)
     
     def yamashita_fp(self):
-        # print('yamashita_fp', self.fspm)
         return str(round(self.fspm*(-3148)+4620,2))
 
     def yamashita_sp(self):
-        # print('yamashita_sp', self.sspm)
         return str(round(self.sspm*(-3148)+4620, 2))
 
     def moveClass(self, cur_mov_cp, mov_cp_diff, start_pos):
@@ -93,12 +91,17 @@ class SomeAnalisisStuff(ec.Engine):
 
 class MovesClassificator:
     def __init__(self):
-        pass
+        self.res_list = ['Великолепно', 'Отлично', 'Хорошо', 'Плохо']
 
     def predict(self, X):
-        if X[0] > 0 and X[1] < 0:
-            return 'Отлично'
-        elif X[0] > -10000 and X[1] < 10000:
-            return 'Хорошо' 
+        if X[0] >= X[1]:
+            if X[0] - 15000 >= X[1]:
+                return self.res_list[0]
+            else:
+                return self.res_list[1]
         else:
-            return 'Плохо'
+            if X[0] + 15000 > X[1]:
+                return self.res_list[2]
+            else:
+                return self.res_list[3]
+        

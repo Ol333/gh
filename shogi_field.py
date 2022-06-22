@@ -12,13 +12,13 @@ from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QColor, QPixmap, QPe
 import kifu_translation
 
 class MvScene(QGraphicsScene, QObject):
-    worker = None
     selected_figure = None
     komodai_dict_0 = {'歩':[0, 460, 400], '桂':[0,510,400], '香':[0,460,350], '銀':[0,510,350], '金':[0,460,300], '角':[0,510,300],  '飛':[0,460,250]}
     komodai_dict_1 = {'歩':[0,-50,0], '桂':[0,-100,0], '香':[0,-50,50], '銀':[0,-100,50], '金':[0,-50,100], '角':[0,-100,100],  '飛':[0,-50,150]}
     figures_list_jp = ['歩', '王','玉', '飛', '角', '金', '銀', '桂', '香', 'と', '圭', '全', '馬', '龍', '杏']
     figures_list_en = ['p', 'k', 'K', 'r', 'b', 'g', 's', 'n', 'l', '+p', '+n', '+s', '+b', '+r', '+l']
     nari_figures = {'歩':'と', '桂':'圭', '銀':'全','角':'馬', '飛':'龍', '香':'杏'}
+    number_list = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9}
     brush = None
     
     def __init__(self, com, startpos=['']):
@@ -65,11 +65,17 @@ class MvScene(QGraphicsScene, QObject):
             self.komodai_dict_1[k][0] = self.addText(str(0))
             self.komodai_dict_1[k][0].setPos(self.komodai_dict_1[k][1]-5, self.komodai_dict_1[k][2]-3)
         for f in res_pos[1]:
-            self.addFigure(1, self.komodai_dict_1[f[0]][1]//50, self.komodai_dict_1[f[0]][2]//50, f)
-            self.komodai_dict_1[f[0]][0].setPlainText(str(int(self.komodai_dict_1[f[0]][0].toPlainText())+1))
+            addish_numb = 1
+            if len(f)>1:
+                addish_numb = self.number_list[f[1]]
+            self.addFigure(1, self.komodai_dict_1[f[0]][1]//50, self.komodai_dict_1[f[0]][2]//50, f[0])
+            self.komodai_dict_1[f[0]][0].setPlainText(str(int(self.komodai_dict_1[f[0]][0].toPlainText())+addish_numb))
         for f in res_pos[2]:
-            self.addFigure(0, self.komodai_dict_0[f[0]][1]//50, self.komodai_dict_0[f[0]][2]//50, f)
-            self.komodai_dict_0[f[0]][0].setPlainText(str(int(self.komodai_dict_0[f[0]][0].toPlainText())+1))
+            addish_numb = 1
+            if len(f)>1:
+                addish_numb = self.number_list[f[1]]
+            self.addFigure(0, self.komodai_dict_0[f[0]][1]//50, self.komodai_dict_0[f[0]][2]//50, f[0])
+            self.komodai_dict_0[f[0]][0].setPlainText(str(int(self.komodai_dict_0[f[0]][0].toPlainText())+addish_numb))
 
     def mousePressEvent(self, mouseEvent):
         if (mouseEvent.button() == Qt.RightButton):

@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
         self.graphicsView.setGeometry(QtCore.QRect(10, 40, 711, 561))
         self.graphicsView.setObjectName("graphicsView")
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(880, 10, 191, 21))
+        self.label.setGeometry(QtCore.QRect(930, 10, 191, 21))
         font = QtGui.QFont()
         font.setPointSize(12)
         font.setBold(True)

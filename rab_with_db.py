@@ -109,7 +109,7 @@ class DbConnection:
         for m in moves:
             self.move_add(kif_id, m[0], m[1], m[2], m[3])
 
-    def pl_and_kifu(self,pl_id):
+    def pl_and_kifu(self, pl_id):
         mas = []
         res = []
         self.cur.execute(f"SELECT id_Kifu,id_Player FROM Participation WHERE id_Player={pl_id}")

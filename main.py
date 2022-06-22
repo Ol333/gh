@@ -1,26 +1,18 @@
 import sys
 import os
-from telnetlib import TM
-from tracemalloc import start
-from turtle import color
 import numpy as np
-import subprocess
-from datetime import datetime, timedelta
 import matplotlib
 matplotlib.use('Qt5Agg')
-# import matplotlib.pyplot as plt
 from matplotlib.figure import SubplotParams
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QCheckBox,
-QGridLayout, QInputDialog, QApplication, QMessageBox, QTextEdit, QRadioButton,
-QGroupBox, QScrollArea, QLabel, QHBoxLayout, QMainWindow, QProgressBar,
-QAction, QFileDialog, QDialog, QGraphicsScene, QGraphicsItem, QTableWidgetItem,
-QHeaderView, QDialogButtonBox, QFormLayout, QToolTip, QDialogButtonBox)
-from PyQt5.QtCore import (QRect, QCoreApplication, pyqtSignal, QObject, Qt,
-QTranslator, QLocale)
-from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QPixmap, QImage)
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QInputDialog, 
+QApplication, QMessageBox, QMainWindow, QFileDialog, QDialog, QGraphicsScene, 
+QTableWidgetItem, QHeaderView, QDialogButtonBox, QFormLayout, QDialogButtonBox)
+from PyQt5.QtCore import (QRect, QCoreApplication, pyqtSignal, QObject)
+from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QPixmap, QImage, 
+QGuiApplication, QClipboard)
 
 from main_ui import Ui_MainWindow
 from db_ui import Ui_Form
@@ -29,7 +21,7 @@ import shogi_field
 import engine_connection as ec
 import some_analisis_stuff as sas
 
-class Example(Ui_MainWindow, Ui_Form, QObject, object):
+class mprWindow(Ui_MainWindow, Ui_Form, QObject, object):
     def __init__(self, form1, form2, com, app):
         super().__init__()
         self.form = form1
@@ -37,16 +29,15 @@ class Example(Ui_MainWindow, Ui_Form, QObject, object):
         self.app = app
         self.comm = com
         self.setupUi(form1)
-        self.window_main = form1
         self.moves_cp_f = []
         self.moves_cp_s = []
         self.moves_cp = []
         self.rec_cp = []
         self.connect_slots()
         engNam = [f for f in os.listdir() if 'YaneuraOu' in f][0].split('.')[0]
+        self.rwd = rab_with_db.DbConnection("shogi_db10000.db")
         self.engAddr = os.getcwd() + "\\" + engNam  # ?
         self.eng = ec.Engine(engNam)
-        
         self.analisis = sas.SomeAnalisisStuff(self.eng)
         self.restartFlag = False
         # self.eng = ec.Engine("YaneuraOu_NNUE-tournament-clang++-avx2")
@@ -116,34 +107,23 @@ class Example(Ui_MainWindow, Ui_Form, QObject, object):
         self.graphicsView.scene().sspm.setPlainText(self.analisis.yamashita_sp())
             
     def saveKifuToDB(self):
-        dlg = QDialog()
-        buttonBox = QDialogButtonBox(dlg)
-        buttonBox.setGeometry(QRect(90, 70, 156, 23))
-        buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
-        buttonBox.accepted.connect(self.save)
-        buttonBox.rejected.connect(dlg.close)
-        dlg.setWindowTitle("Сохранение партии")
-        label = QLabel(dlg)
-        label.setText(('Вы уверены, что хотите сохранить эту игру? \n'
+        question = ('Вы уверены, что хотите сохранить эту игру? \n'
                     + 'Первый игрок: ' + self.graphicsView.scene().fpn.toPlainText() + '\n'
                     + 'Второй игрок: '+ self.graphicsView.scene().spn.toPlainText() + '\n'
-                    + str(self.tableWidget.rowCount()-1) + ' ходов.'))
-        label.setAlignment(Qt.AlignBottom | Qt.AlignCenter)
-        label.setMargin(5)
-        dlg.setWindowModality(Qt.ApplicationModal)
-        dlg.exec_()
-
-    def save(self):
-        moves = []
-        for row in range(1, self.tableWidget.currentRow()+1):
-            moves.append([row,
-                        # self.tableWidget.item(row, 0).text(), # упс
-                        self.rec_cp[row-1],
-                        self.tableWidget.item(row, 4).text(),
-                        self.moves_cp[row-1]])
-        self.rwd.save_game(self.graphicsView.scene().fpn.toPlainText(), 
-                            self.graphicsView.scene().spn.toPlainText(),
-                            moves)
+                    + str(self.tableWidget.rowCount()-1) + ' ходов.')
+        d = QMessageBox.question(QWidget(), "Сохранение партии", question,
+                                QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
+        if d == QMessageBox.Yes:
+            moves = []
+            for row in range(1, self.tableWidget.currentRow()+1):
+                moves.append([row,
+                            # self.tableWidget.item(row, 0).text(), # упс
+                            self.rec_cp[row-1],
+                            self.tableWidget.item(row, 4).text(),
+                            self.moves_cp[row-1]])
+            self.rwd.save_game(self.graphicsView.scene().fpn.toPlainText(), 
+                                self.graphicsView.scene().spn.toPlainText(),
+                                moves)
 
     def downloadKifuFromDB(self):
         self.db_form.show()
@@ -260,8 +240,8 @@ class Example(Ui_MainWindow, Ui_Form, QObject, object):
     def showDialog_connectEngine(self):
         path = QFileDialog.getOpenFileName(self.form,
             'Выберите файл движка (нажмите Enter)', self.engAddr, "Executable (*.exe)")
-        if path:
-            print(path[0].split('/')[-1])
+        # if path:
+        #     print(path[0].split('/')[-1])
 
     def showDialog_connectDB(self):
         mb = QMessageBox()
@@ -279,20 +259,24 @@ class Example(Ui_MainWindow, Ui_Form, QObject, object):
         res = []
         for i in range(self.tableWidget.rowCount()):
             res.append(self.tableWidget.item(i,0).text())
-        print('\n'.join(res[1:]))
+        QGuiApplication.clipboard().setText('\n'.join(res[1:]))
 
     def changePlayerName(self):
-        dialog = InputDialog()
+        dialog = InputDialog(self.graphicsView.scene().fpn.toPlainText(), self.graphicsView.scene().spn.toPlainText())
         if dialog.exec():
-            print(dialog.getInputs())
+            fir, sec = dialog.getInputs()
+            self.graphicsView.scene().fpn.setPlainText(fir)
+            self.graphicsView.scene().spn.setPlainText(sec)
 
 class InputDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, fpn, spn, parent=None):
         super().__init__(parent)
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
         layout = QFormLayout(self)
-        layout.addRow("Первый игрок", QLineEdit(self))
-        layout.addRow("Второй игрок", QLineEdit(self))
+        self.first = QLineEdit(fpn, self)
+        self.second = QLineEdit(spn, self)
+        layout.addRow("Первый игрок", self.first)
+        layout.addRow("Второй игрок", self.second)
         layout.addWidget(buttonBox)
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
@@ -319,28 +303,38 @@ class dbWindow(Ui_Form, QObject):
     def connect_slots(self):
         self.pushButton.clicked.connect(self.find)
         self.pushButton_2.clicked.connect(self.load)
-        # self.comm.kifDownl.connect(self.load)
         
     def find(self):
         fpl = ''
         spl = ''
+        fpl_id = None
+        spl_id = None
         self.kif_id_list = []
         if self.textEdit.toPlainText() != '':
             fpl = self.textEdit.toPlainText()
-            for r in self.rwd.pl_and_kifu(self.rwd.player_idbylogin(fpl)):
-                self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
-                self.tableWidget.setItem(self.tableWidget.rowCount()-1, 0, QTableWidgetItem(self.rwd.player_loginbyid(r[2])))
-                self.tableWidget.setItem(self.tableWidget.rowCount()-1, 1, QTableWidgetItem(self.rwd.player_loginbyid(r[3])))
-                self.tableWidget.setItem(self.tableWidget.rowCount()-1, 2, QTableWidgetItem(r[0]))
-                self.kif_id_list.append(r[1])
+            fpl_id = self.rwd.player_idbylogin(fpl)
+            if fpl_id != None:
+                for r in self.rwd.pl_and_kifu(fpl_id):
+                    self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
+                    self.tableWidget.setItem(self.tableWidget.rowCount()-1, 0, QTableWidgetItem(self.rwd.player_loginbyid(r[2])))
+                    self.tableWidget.setItem(self.tableWidget.rowCount()-1, 1, QTableWidgetItem(self.rwd.player_loginbyid(r[3])))
+                    self.tableWidget.setItem(self.tableWidget.rowCount()-1, 2, QTableWidgetItem(r[0]))
+                    self.kif_id_list.append(r[1])
         if self.textEdit_2.toPlainText() != '':
             spl = self.textEdit_2.toPlainText()
-            for r in self.rwd.pl_and_kifu(self.rwd.player_idbylogin(spl)):
-                self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
-                self.tableWidget.setItem(self.tableWidget.rowCount()-1, 0, QTableWidgetItem(self.rwd.player_loginbyid(r[2])))
-                self.tableWidget.setItem(self.tableWidget.rowCount()-1, 1, QTableWidgetItem(self.rwd.player_loginbyid(r[3])))
-                self.tableWidget.setItem(self.tableWidget.rowCount()-1, 2, QTableWidgetItem(r[0]))
-                self.kif_id_list.append(r[1])
+            spl_id = self.rwd.player_idbylogin(spl)
+            if spl_id != None:
+                for r in self.rwd.pl_and_kifu(spl_id):
+                    self.tableWidget.setRowCount(self.tableWidget.rowCount()+1)
+                    self.tableWidget.setItem(self.tableWidget.rowCount()-1, 0, QTableWidgetItem(self.rwd.player_loginbyid(r[2])))
+                    self.tableWidget.setItem(self.tableWidget.rowCount()-1, 1, QTableWidgetItem(self.rwd.player_loginbyid(r[3])))
+                    self.tableWidget.setItem(self.tableWidget.rowCount()-1, 2, QTableWidgetItem(r[0]))
+                    self.kif_id_list.append(r[1])
+        if fpl_id == None and spl_id == None:
+            mb = QMessageBox()
+            mb.setWindowTitle("Поиск кифу")
+            mb.setText("Таких игроков нет в БД.")
+            mb.exec()
 
     def load(self):
         s = self.rwd.get_kifu(self.kif_id_list[self.tableWidget.currentRow()])[0]
@@ -359,7 +353,7 @@ if __name__ == '__main__':
     window = QMainWindow()
     db_window = QWidget()
     db_wind = dbWindow(db_window, com)
-    ui = Example(window, db_window, com, app)
+    ui = mprWindow(window, db_window, com, app)
     window.show()
 
     sys.exit(app.exec_())

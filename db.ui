@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Поиск кифу</string>
   </property>
   <widget class="QTextEdit" name="textEdit">
    <property name="geometry">

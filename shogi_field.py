@@ -34,7 +34,13 @@ class MvScene(QGraphicsScene, QObject):
         else:
             self.brush_auto = QBrush(QColor(235, 207, 153))
         self.comm = com
+        self.first_player_name = 'first player name'
+        self.second_player_name = 'second player name'
         # self.drawAll(startpos)
+
+    def setNames(self, fir_pl, sec_pl):
+        self.first_player_name = fir_pl
+        self.second_player_name = sec_pl
 
     def drawAll(self, startpos, silence=False):
         self.clear()
@@ -99,13 +105,13 @@ class MvScene(QGraphicsScene, QObject):
         left_komodai.setData(0, "Left komodai")
         right_komodai = self.addRect(455.0,250.0,100.0,200.0, QPen(QColor(255, 255, 255)), self.brush)
         right_komodai.setData(0, "Right komodai")
-        self.spn = self.addText('second player name')
+        self.spn = self.addText(self.second_player_name)
         self.spn.setPos(-105.0,-25.0)
         sspm = self.addText('Рейтинг по Ямасите: ')
         sspm.setPos(-105.0,-45.0)
         self.sspm = self.addText('0')
         self.sspm.setPos(5.0,-45.0)
-        self.fpn = self.addText('first player name')
+        self.fpn = self.addText(self.first_player_name)
         self.fpn.setPos(455.0,460.0)
         fspm = self.addText('Рейтинг по Ямасите: ')
         fspm.setPos(425.0,480.0)

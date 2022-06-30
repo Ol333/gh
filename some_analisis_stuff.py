@@ -21,13 +21,13 @@ class SomeAnalisisStuff(ec.Engine):
             temp_sign = 1
         else:
             temp_sign = -1
-        print(temp_sign, end=' ')
+        # print(temp_sign, end=' ')
         if move_count != 1:
-            print(mov_cp, last_cp, last_cp + mov_cp)
+            # print(mov_cp, last_cp, last_cp + mov_cp)
             mov_cp_diff = last_cp + mov_cp
         else:
             mov_cp_diff = mov_cp
-            print('-', mov_cp ,last_cp, '-')
+            # print('-', mov_cp ,last_cp, '-')
         return mov_cp, mov_cp_diff
 
     def ver_raspr_rasn(self, fx, fy, n):

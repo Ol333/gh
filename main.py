@@ -180,8 +180,11 @@ class mprWindow(Ui_MainWindow, Ui_Form, QObject, object):
                     + (self.graphicsView.scene().fpn.toPlainText() if self.tableWidget.rowCount()%2 == 0 else 'второй')+' игрок.')
         mb.exec()
 
-    def kifDownload(self, kif):
+    def kifDownload(self, kif, fir_pl, sec_pl):
         self.graphicsView.scene().drawAll(kif)
+        self.graphicsView.scene().setNames(fir_pl, sec_pl)
+        self.graphicsView.scene().fpn.setPlainText(fir_pl)
+        self.graphicsView.scene().spn.setPlainText(sec_pl)
 
     def engineMove(self):
         start_pos = self.graphicsView.scene().transl.getBoard()
@@ -198,7 +201,7 @@ class mprWindow(Ui_MainWindow, Ui_Form, QObject, object):
             if self.tableWidget.currentRow()-1 > 0 and self.tableWidget.item(self.tableWidget.currentRow()-1,1) == None:
                 self.tableWidget.setCurrentCell(self.tableWidget.currentRow()-1,0)
                 self.tableWidget.setCurrentCell(temp_cur_row,0)
-            mov_cp, mov_cp_diff = self.analisis.moveDiffrence(self.graphicsView.scene().transl.getBoard(), self.last_cp, self.tableWidget.rowCount() - 1)
+            mov_cp, mov_cp_diff = self.analisis.moveDiffrence(self.graphicsView.scene().transl.getBoard(), self.last_cp, self.tableWidget.currentRow() - 1)
             if self.tableWidget.currentRow()%2==1:
                 self.moves_cp_f.append(-mov_cp)
             else:
@@ -267,6 +270,7 @@ class mprWindow(Ui_MainWindow, Ui_Form, QObject, object):
             fir, sec = dialog.getInputs()
             self.graphicsView.scene().fpn.setPlainText(fir)
             self.graphicsView.scene().spn.setPlainText(sec)
+            self.graphicsView.scene().setNames(fir, sec)
 
 class InputDialog(QDialog):
     def __init__(self, fpn, spn, parent=None):
@@ -338,13 +342,15 @@ class dbWindow(Ui_Form, QObject):
 
     def load(self):
         s = self.rwd.get_kifu(self.kif_id_list[self.tableWidget.currentRow()])[0]
-        self.comm.kifDownl.emit(s)
+        fir_pl = self.tableWidget.item(self.tableWidget.currentRow(),0).text()
+        sec_pl = self.tableWidget.item(self.tableWidget.currentRow(),1).text()
+        self.comm.kifDownl.emit(s, fir_pl, sec_pl)
 
 class Communicate(QObject):
     updMoves = pyqtSignal(str)
     autoGame = pyqtSignal()
     gameOver = pyqtSignal(str)
-    kifDownl = pyqtSignal(str)
+    kifDownl = pyqtSignal(str, str, str)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
